@@ -1,5 +1,7 @@
 import type { Product, StockMovement } from "./types";
 
+export type StockStatus = "ok" | "warning" | "low";
+
 export function calculateStock(
   productId: string,
   movements: StockMovement[]
@@ -14,6 +16,17 @@ export function calculateStock(
 
 export function isLowStock(product: Product, stock: number): boolean {
   return stock <= product.minStock;
+}
+
+/** Amarillo: exactamente 1 unidad por encima del mínimo (kg, lt, pieza, etc.). */
+export function isWarningStock(product: Product, stock: number): boolean {
+  return stock > product.minStock && stock <= product.minStock + 1;
+}
+
+export function getStockStatus(product: Product, stock: number): StockStatus {
+  if (isLowStock(product, stock)) return "low";
+  if (isWarningStock(product, stock)) return "warning";
+  return "ok";
 }
 
 export function getProductStockMap(

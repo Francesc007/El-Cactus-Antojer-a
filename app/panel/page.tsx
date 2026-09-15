@@ -1,16 +1,34 @@
 "use client";
 
-import { useMemo } from "react";
-import Link from "next/link";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useReservations } from "@/context/ReservationContext";
+import { apiRequest } from "@/lib/api-client";
 import { getPeakHour } from "@/lib/availability";
 import { formatDisplayDate, todayStr } from "@/lib/dates";
+import { DEFAULT_CAPACITY_CONFIG } from "@/lib/mock-data";
+import { PanelStatCard } from "@/components/panel/PanelStatCard";
 import { StatusBadge } from "@/components/panel/StatusBadge";
+import type { CapacityConfig } from "@/lib/types";
 
 export default function PanelDashboardPage() {
-  const { reservations, getReservationsForDate, capacityConfig } =
+  const { reservations, getReservationsForDate, loading, error, setSelectedDate } =
     useReservations();
   const today = todayStr();
+  const [capacity, setCapacity] = useState<CapacityConfig>(DEFAULT_CAPACITY_CONFIG);
+
+  const loadSettings = useCallback(async () => {
+    const data = await apiRequest<{ capacity: CapacityConfig }>("/api/settings");
+    setCapacity(data.capacity);
+  }, []);
+
+  useEffect(() => {
+    setSelectedDate(today);
+  }, [setSelectedDate, today]);
+
+  useEffect(() => {
+    void loadSettings().catch(() => undefined);
+  }, [loadSettings]);
+
   const todayReservations = getReservationsForDate(today);
 
   const activeToday = todayReservations.filter(
@@ -18,11 +36,19 @@ export default function PanelDashboardPage() {
   );
 
   const peak = useMemo(
-    () => getPeakHour(reservations, today, capacityConfig),
-    [reservations, today, capacityConfig]
+    () => getPeakHour(reservations, today, capacity),
+    [reservations, today, capacity]
   );
 
   const totalGuests = activeToday.reduce((sum, r) => sum + r.partySize, 0);
+
+  if (loading) {
+    return <p className="text-stone-500">Cargando resumen…</p>;
+  }
+
+  if (error) {
+    return <p className="text-red-700">{error}</p>;
+  }
 
   return (
     <div>
@@ -33,49 +59,33 @@ export default function PanelDashboardPage() {
       </p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-3">
-        <div className="premium-card p-6">
-          <p className="text-xs font-bold uppercase tracking-widest text-stone-400">
-            Reservas hoy
-          </p>
-          <p className="mt-2 font-display text-4xl font-bold text-cactus-forest">
-            {activeToday.length}
-          </p>
-        </div>
-        <div className="premium-card p-6">
-          <p className="text-xs font-bold uppercase tracking-widest text-stone-400">
-            Comensales esperados
-          </p>
-          <p className="mt-2 font-display text-4xl font-bold text-cactus-sunset">
-            {totalGuests}
-          </p>
-        </div>
-        <div className="premium-card p-6">
-          <p className="text-xs font-bold uppercase tracking-widest text-stone-400">
-            Hora pico
-          </p>
-          <p className="mt-2 font-display text-4xl font-bold text-cactus-charcoal">
-            {peak ? peak.time : "—"}
-          </p>
+        <PanelStatCard
+          label="Reservas hoy"
+          tone="forest"
+          value={<span className="text-cactus-forest">{activeToday.length}</span>}
+        />
+        <PanelStatCard
+          label="Comensales esperados"
+          tone="sunset"
+          value={<span className="text-cactus-sunset">{totalGuests}</span>}
+        />
+        <PanelStatCard
+          label="Hora pico"
+          tone="lime"
+          value={<span className="text-cactus-charcoal">{peak ? peak.time : "—"}</span>}
+        >
           {peak && (
-            <p className="mt-1 text-sm text-stone-500">
-              {peak.occupancy} / {capacityConfig.totalCapacity} personas
+            <p className="mt-1 text-sm text-stone-600">
+              {peak.occupancy} / {capacity.totalCapacity} personas
             </p>
           )}
-        </div>
+        </PanelStatCard>
       </div>
 
       <div className="mt-8">
-        <div className="flex items-center justify-between">
-          <h2 className="font-display text-xl font-bold text-cactus-charcoal">
-            Próximas reservas
-          </h2>
-          <Link
-            href="/panel/reservas"
-            className="text-sm font-semibold text-cactus-forest transition hover:text-cactus-sunset"
-          >
-            Ver agenda →
-          </Link>
-        </div>
+        <h2 className="font-display text-xl font-bold text-cactus-charcoal">
+          Próximas reservas
+        </h2>
 
         <div className="premium-card mt-4 overflow-hidden">
           {todayReservations.length === 0 ? (

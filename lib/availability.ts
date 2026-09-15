@@ -1,19 +1,24 @@
 import { OPERATING_HOURS } from "./business-info";
 import { getDayOfWeek } from "./dates";
-import type { CapacityConfig, Reservation } from "./types";
+import type {
+  BlockedSlot,
+  CapacityConfig,
+  OperatingHour,
+  Reservation,
+} from "./types";
 
-const ACTIVE_STATUSES: Reservation["status"][] = [
+export const ACTIVE_RESERVATION_STATUSES: Reservation["status"][] = [
   "pending",
   "confirmed",
   "completed",
 ];
 
-function timeToMinutes(time: string): number {
+export function timeToMinutes(time: string): number {
   const [hours, minutes] = time.split(":").map(Number);
   return hours * 60 + minutes;
 }
 
-function rangesOverlap(
+export function rangesOverlap(
   startA: number,
   endA: number,
   startB: number,
@@ -22,22 +27,43 @@ function rangesOverlap(
   return startA < endB && startB < endA;
 }
 
-export function isOpenDay(dateStr: string): boolean {
+export function isOpenDay(
+  dateStr: string,
+  hours: readonly OperatingHour[] | typeof OPERATING_HOURS = OPERATING_HOURS
+): boolean {
   const day = getDayOfWeek(dateStr);
-  return OPERATING_HOURS.some((schedule) =>
-    (schedule.days as readonly number[]).includes(day)
-  );
+  const match = hours.find((entry) => {
+    if ("days" in entry) {
+      return (entry.days as readonly number[]).includes(day);
+    }
+    return entry.dayOfWeek === day;
+  });
+
+  if (!match) return false;
+  if ("isClosed" in match) return !match.isClosed;
+  return true;
 }
 
 export function getHoursForDate(
-  dateStr: string
+  dateStr: string,
+  hours: readonly OperatingHour[] | typeof OPERATING_HOURS = OPERATING_HOURS
 ): { open: string; close: string } | null {
   const day = getDayOfWeek(dateStr);
-  const schedule = OPERATING_HOURS.find((entry) =>
-    (entry.days as readonly number[]).includes(day)
-  );
+  const schedule = hours.find((entry) => {
+    if ("days" in entry) {
+      return (entry.days as readonly number[]).includes(day);
+    }
+    return entry.dayOfWeek === day && !entry.isClosed;
+  });
 
-  return schedule ? { open: schedule.open, close: schedule.close } : null;
+  if (!schedule) return null;
+  if ("isClosed" in schedule && schedule.isClosed) return null;
+
+  if ("open" in schedule) {
+    return { open: schedule.open, close: schedule.close };
+  }
+
+  return { open: schedule.openTime, close: schedule.closeTime };
 }
 
 export function getProjectedOccupancy(
@@ -50,9 +76,7 @@ export function getProjectedOccupancy(
   const slotEnd = slotStart + durationMinutes;
 
   return reservations
-    .filter(
-      (r) => r.date === date && ACTIVE_STATUSES.includes(r.status)
-    )
+    .filter((r) => r.date === date && ACTIVE_RESERVATION_STATUSES.includes(r.status))
     .filter((r) => {
       const resStart = timeToMinutes(r.time);
       const resEnd = resStart + r.durationMinutes;
@@ -61,14 +85,39 @@ export function getProjectedOccupancy(
     .reduce((sum, r) => sum + r.partySize, 0);
 }
 
+export function slotOverlapsBlocked(
+  date: string,
+  slotTime: string,
+  durationMinutes: number,
+  blockedSlots: BlockedSlot[]
+): boolean {
+  const slotStart = timeToMinutes(slotTime);
+  const slotEnd = slotStart + durationMinutes;
+
+  return blockedSlots.some((slot) => {
+    if (slot.date !== date) return false;
+    return rangesOverlap(
+      slotStart,
+      slotEnd,
+      timeToMinutes(slot.startTime),
+      timeToMinutes(slot.endTime)
+    );
+  });
+}
+
 export function isSlotAvailable(
   reservations: Reservation[],
   config: CapacityConfig,
   date: string,
   slotTime: string,
-  partySize: number
+  partySize: number,
+  blockedSlots: BlockedSlot[] = [],
+  hours: readonly OperatingHour[] | typeof OPERATING_HOURS = OPERATING_HOURS
 ): boolean {
-  if (!isOpenDay(date)) return false;
+  if (!isOpenDay(date, hours)) return false;
+  if (slotOverlapsBlocked(date, slotTime, config.defaultDurationMinutes, blockedSlots)) {
+    return false;
+  }
 
   const occupancy = getProjectedOccupancy(
     reservations,
@@ -98,18 +147,22 @@ export function generateTimeSlots(
   return slots;
 }
 
-export function getAllSlotsForDate(date: string): string[] {
-  const hours = getHoursForDate(date);
-  if (!hours) return [];
-  return generateTimeSlots(hours.open, hours.close);
+export function getAllSlotsForDate(
+  date: string,
+  hours: readonly OperatingHour[] | typeof OPERATING_HOURS = OPERATING_HOURS
+): string[] {
+  const range = getHoursForDate(date, hours);
+  if (!range) return [];
+  return generateTimeSlots(range.open, range.close);
 }
 
 export function getOccupancyByHour(
   reservations: Reservation[],
   date: string,
-  config: CapacityConfig
+  config: CapacityConfig,
+  hours: readonly OperatingHour[] | typeof OPERATING_HOURS = OPERATING_HOURS
 ): { time: string; occupancy: number; capacity: number }[] {
-  const slots = getAllSlotsForDate(date);
+  const slots = getAllSlotsForDate(date, hours);
   return slots.map((time) => ({
     time,
     occupancy: getProjectedOccupancy(
@@ -125,9 +178,10 @@ export function getOccupancyByHour(
 export function getPeakHour(
   reservations: Reservation[],
   date: string,
-  config: CapacityConfig
+  config: CapacityConfig,
+  hours: readonly OperatingHour[] | typeof OPERATING_HOURS = OPERATING_HOURS
 ): { time: string; occupancy: number } | null {
-  const byHour = getOccupancyByHour(reservations, date, config);
+  const byHour = getOccupancyByHour(reservations, date, config, hours);
   if (byHour.length === 0) return null;
 
   const peak = byHour.reduce((max, slot) =>

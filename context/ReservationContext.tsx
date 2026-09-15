@@ -1,64 +1,60 @@
 "use client";
 
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
-import {
-  DEFAULT_CAPACITY_CONFIG,
-  getInitialReservations,
-} from "@/lib/mock-data";
-import type {
-  CapacityConfig,
-  NewReservationInput,
-  Reservation,
-  ReservationStatus,
-} from "@/lib/types";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext } from "react";
+import { apiRequest } from "@/lib/api-client";
+import { todayStr } from "@/lib/dates";
+import type { Reservation, ReservationStatus } from "@/lib/types";
 
 type ReservationContextValue = {
   reservations: Reservation[];
-  capacityConfig: CapacityConfig;
-  addReservation: (input: NewReservationInput) => Reservation;
-  updateReservationStatus: (id: string, status: ReservationStatus) => void;
+  loading: boolean;
+  error: string | null;
+  selectedDate: string;
+  setSelectedDate: (date: string) => void;
+  refresh: () => Promise<void>;
+  updateReservationStatus: (id: string, status: ReservationStatus) => Promise<void>;
   getReservationsForDate: (date: string) => Reservation[];
 };
 
 const ReservationContext = createContext<ReservationContextValue | null>(null);
 
 export function ReservationProvider({ children }: { children: ReactNode }) {
-  const [reservations, setReservations] = useState<Reservation[]>(
-    getInitialReservations
-  );
-  const [capacityConfig] = useState<CapacityConfig>(DEFAULT_CAPACITY_CONFIG);
+  const [selectedDate, setSelectedDate] = useState(todayStr);
+  const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const addReservation = useCallback(
-    (input: NewReservationInput): Reservation => {
-      const newReservation: Reservation = {
-        id: `res-${Date.now()}`,
-        customerName: input.customerName,
-        phone: input.phone,
-        partySize: input.partySize,
-        date: input.date,
-        time: input.time,
-        durationMinutes: capacityConfig.defaultDurationMinutes,
-        status: "confirmed",
-        createdAt: new Date().toISOString(),
-      };
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await apiRequest<{ reservations: Reservation[] }>(
+        `/api/reservations?date=${selectedDate}`
+      );
+      setReservations(data.reservations);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No se pudieron cargar las reservas");
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedDate]);
 
-      setReservations((prev) => [...prev, newReservation]);
-      return newReservation;
-    },
-    [capacityConfig.defaultDurationMinutes]
-  );
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
 
   const updateReservationStatus = useCallback(
-    (id: string, status: ReservationStatus) => {
+    async (id: string, status: ReservationStatus) => {
+      const data = await apiRequest<{ reservation: Reservation }>(
+        `/api/reservations/${id}`,
+        {
+          method: "PATCH",
+          body: JSON.stringify({ status }),
+        }
+      );
       setReservations((prev) =>
-        prev.map((r) => (r.id === id ? { ...r, status } : r))
+        prev.map((item) => (item.id === id ? data.reservation : item))
       );
     },
     []
@@ -67,7 +63,7 @@ export function ReservationProvider({ children }: { children: ReactNode }) {
   const getReservationsForDate = useCallback(
     (date: string) =>
       reservations
-        .filter((r) => r.date === date)
+        .filter((item) => item.date === date)
         .sort((a, b) => a.time.localeCompare(b.time)),
     [reservations]
   );
@@ -75,24 +71,27 @@ export function ReservationProvider({ children }: { children: ReactNode }) {
   const value = useMemo(
     () => ({
       reservations,
-      capacityConfig,
-      addReservation,
+      loading,
+      error,
+      selectedDate,
+      setSelectedDate,
+      refresh,
       updateReservationStatus,
       getReservationsForDate,
     }),
     [
       reservations,
-      capacityConfig,
-      addReservation,
+      loading,
+      error,
+      selectedDate,
+      refresh,
       updateReservationStatus,
       getReservationsForDate,
     ]
   );
 
   return (
-    <ReservationContext.Provider value={value}>
-      {children}
-    </ReservationContext.Provider>
+    <ReservationContext.Provider value={value}>{children}</ReservationContext.Provider>
   );
 }
 

@@ -2,20 +2,35 @@
 
 import { useState } from "react";
 import { useInventory } from "@/context/InventoryContext";
+import { ConfirmDialog } from "@/components/panel/ConfirmDialog";
+import { PanelSectionCard } from "@/components/panel/PanelSectionCard";
 import { StockStatusBadge } from "@/components/panel/inventory/StockStatusBadge";
+import { getStockRowClass } from "@/lib/inventory-ui";
 import type { Product } from "@/lib/types";
 
 const UNITS = ["kg", "lt", "pieza", "paquete", "caja"];
 
 export default function InventarioProductosPage() {
-  const { products, getStock, isProductLowStock, addProduct, updateProduct } =
-    useInventory();
+  const {
+    products,
+    getStock,
+    getProductStockStatus,
+    addProduct,
+    updateProduct,
+    deleteProduct,
+    loading,
+    error,
+  } = useInventory();
 
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [unit, setUnit] = useState("kg");
   const [minStock, setMinStock] = useState(1);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   function resetForm() {
     setName("");
@@ -23,6 +38,10 @@ export default function InventarioProductosPage() {
     setMinStock(1);
     setEditingId(null);
     setShowForm(false);
+    setFormError(null);
+    setDeleteConfirmOpen(false);
+    setDeleteError(null);
+    setDeleting(false);
   }
 
   function startEdit(product: Product) {
@@ -30,23 +49,51 @@ export default function InventarioProductosPage() {
     setName(product.name);
     setUnit(product.unit);
     setMinStock(product.minStock);
+    setFormError(null);
     setShowForm(true);
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) return;
+    setFormError(null);
 
-    if (editingId) {
-      updateProduct(editingId, {
-        name: name.trim(),
-        unit,
-        minStock,
-      });
-    } else {
-      addProduct({ name: name.trim(), unit, minStock });
+    try {
+      if (editingId) {
+        await updateProduct(editingId, {
+          name: name.trim(),
+          unit,
+          minStock,
+        });
+      } else {
+        await addProduct({ name: name.trim(), unit, minStock });
+      }
+      resetForm();
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : "No se pudo guardar el producto");
     }
-    resetForm();
+  }
+
+  function openDeleteConfirm() {
+    setDeleteError(null);
+    setDeleteConfirmOpen(true);
+  }
+
+  async function confirmDelete() {
+    if (!editingId) return;
+
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      await deleteProduct(editingId);
+      resetForm();
+    } catch (err) {
+      setDeleteError(
+        err instanceof Error ? err.message : "No se pudo eliminar el producto"
+      );
+    } finally {
+      setDeleting(false);
+    }
   }
 
   return (
@@ -72,17 +119,23 @@ export default function InventarioProductosPage() {
         </button>
       </div>
 
+      {error && <p className="mt-4 text-sm text-red-700">{error}</p>}
+      {loading && <p className="mt-4 text-sm text-stone-500">Cargando catálogo…</p>}
+
       {showForm && (
         <form
-          onSubmit={handleSubmit}
+            onSubmit={(e) => void handleSubmit(e)}
           className="premium-card mt-6 space-y-4 p-5"
         >
           <h3 className="font-display font-bold text-cactus-forest">
             {editingId ? "Editar producto" : "Alta de producto"}
           </h3>
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div className="sm:col-span-2">
-              <label htmlFor="prod-name" className="text-sm font-semibold">
+          {formError && (
+            <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{formError}</p>
+          )}
+          <div className="grid gap-4 sm:grid-cols-3 sm:items-end">
+            <div className="flex flex-col">
+              <label htmlFor="prod-name" className="min-h-10 text-sm font-semibold leading-snug">
                 Nombre
               </label>
               <input
@@ -95,8 +148,8 @@ export default function InventarioProductosPage() {
                 placeholder="Ej. Pechuga de pollo"
               />
             </div>
-            <div>
-              <label htmlFor="prod-unit" className="text-sm font-semibold">
+            <div className="flex flex-col">
+              <label htmlFor="prod-unit" className="min-h-10 text-sm font-semibold leading-snug">
                 Unidad
               </label>
               <select
@@ -112,8 +165,8 @@ export default function InventarioProductosPage() {
                 ))}
               </select>
             </div>
-            <div>
-              <label htmlFor="prod-min" className="text-sm font-semibold">
+            <div className="flex flex-col">
+              <label htmlFor="prod-min" className="min-h-10 text-sm font-semibold leading-snug">
                 Stock mínimo
               </label>
               <input
@@ -128,22 +181,54 @@ export default function InventarioProductosPage() {
               />
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button type="submit" className="btn-secondary px-5 py-2 text-sm">
               {editingId ? "Guardar cambios" : "Agregar producto"}
             </button>
             <button
               type="button"
               onClick={resetForm}
-              className="rounded-xl px-5 py-2 text-sm font-semibold text-stone-600 hover:bg-stone-100"
+              className="rounded-xl border-2 border-cactus-forest/35 bg-white px-5 py-2 text-sm font-semibold text-cactus-forest transition hover:bg-cactus-forest/5"
             >
               Cancelar
             </button>
+            {editingId && (
+              <button
+                type="button"
+                onClick={openDeleteConfirm}
+                disabled={deleting}
+                className="rounded-xl border-2 border-red-300 bg-white px-5 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Eliminar
+              </button>
+            )}
           </div>
         </form>
       )}
 
-      <div className="premium-card mt-6 overflow-hidden">
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        tone="danger"
+        title="¿Eliminar producto?"
+        description={
+          <>
+            Vas a eliminar <strong className="text-cactus-charcoal">{name.trim()}</strong>.
+            Esta acción no se puede deshacer y el producto desaparecerá del catálogo.
+          </>
+        }
+        confirmLabel="Sí, eliminar"
+        cancelLabel="No, conservar"
+        loading={deleting}
+        error={deleteError}
+        onConfirm={() => void confirmDelete()}
+        onCancel={() => {
+          if (deleting) return;
+          setDeleteConfirmOpen(false);
+          setDeleteError(null);
+        }}
+      />
+
+      <PanelSectionCard tone="lime" className="mt-6">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-cactus-sand/60 bg-stone-50/80">
             <tr>
@@ -164,13 +249,11 @@ export default function InventarioProductosPage() {
           <tbody>
             {products.map((product) => {
               const stock = getStock(product.id);
-              const low = isProductLowStock(product.id);
+              const status = getProductStockStatus(product.id);
               return (
                 <tr
                   key={product.id}
-                  className={`border-b border-stone-100 last:border-0 ${
-                    low ? "bg-red-50/40" : ""
-                  }`}
+                  className={`border-b border-stone-100 last:border-0 ${getStockRowClass(status)}`}
                 >
                   <td className="px-5 py-3 font-medium">{product.name}</td>
                   <td className="px-5 py-3 text-stone-500">{product.unit}</td>
@@ -181,7 +264,7 @@ export default function InventarioProductosPage() {
                     {product.minStock}
                   </td>
                   <td className="px-5 py-3">
-                    <StockStatusBadge isLow={low} />
+                    <StockStatusBadge status={status} />
                   </td>
                   <td className="px-5 py-3">
                     <button
@@ -197,7 +280,7 @@ export default function InventarioProductosPage() {
             })}
           </tbody>
         </table>
-      </div>
+      </PanelSectionCard>
     </div>
   );
 }

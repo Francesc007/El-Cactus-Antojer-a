@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { BUSINESS_INFO } from "@/lib/business-info";
+import { PrivacyLink } from "@/components/ui/PrivacyLink";
 import { SocialLinks } from "./SocialLinks";
 
 export function Footer() {
@@ -26,12 +26,9 @@ export function Footer() {
         </div>
 
         <p className="mt-6">
-          <Link
-            href="/panel"
-            className="text-xs uppercase tracking-widest text-stone-500 transition hover:text-cactus-lime"
-          >
-            Panel del negocio
-          </Link>
+          <PrivacyLink className="text-xs uppercase tracking-widest text-stone-500 transition hover:text-cactus-lime">
+            Aviso de privacidad
+          </PrivacyLink>
         </p>
         <div
           className="mt-4 flex flex-col items-center justify-between gap-2 text-xs text-stone-600 sm:flex-row"

@@ -1,20 +1,84 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useReservations } from "@/context/ReservationContext";
+import { PanelStatCard } from "@/components/panel/PanelStatCard";
 import { StatusBadge } from "@/components/panel/StatusBadge";
+import { apiRequest } from "@/lib/api-client";
 import { todayStr } from "@/lib/dates";
-import type { ReservationStatus } from "@/lib/types";
+import type { BlockedSlot, ReservationStatus } from "@/lib/types";
 
 export default function PanelReservasPage() {
-  const { getReservationsForDate, updateReservationStatus } = useReservations();
-  const [selectedDate, setSelectedDate] = useState(todayStr());
+  const {
+    getReservationsForDate,
+    updateReservationStatus,
+    selectedDate,
+    setSelectedDate,
+    loading,
+    error,
+    refresh,
+  } = useReservations();
   const [blockModalOpen, setBlockModalOpen] = useState(false);
+  const [startTime, setStartTime] = useState("16:00");
+  const [endTime, setEndTime] = useState("18:00");
+  const [reason, setReason] = useState("");
+  const [blockedSlots, setBlockedSlots] = useState<BlockedSlot[]>([]);
+  const [blockError, setBlockError] = useState<string | null>(null);
 
   const dayReservations = getReservationsForDate(selectedDate);
+  const activeReservations = dayReservations.filter(
+    (r) => r.status !== "cancelled" && r.status !== "no_show"
+  );
+  const pendingReservations = dayReservations.filter((r) => r.status === "pending");
+  const totalGuests = activeReservations.reduce((sum, r) => sum + r.partySize, 0);
 
-  function handleStatusChange(id: string, status: ReservationStatus) {
-    updateReservationStatus(id, status);
+  useEffect(() => {
+    if (!selectedDate) setSelectedDate(todayStr());
+  }, [selectedDate, setSelectedDate]);
+
+  useEffect(() => {
+    async function loadBlocks() {
+      try {
+        const data = await apiRequest<{ slots: BlockedSlot[] }>(
+          `/api/blocked-slots?date=${selectedDate}`
+        );
+        setBlockedSlots(data.slots);
+      } catch {
+        setBlockedSlots([]);
+      }
+    }
+    void loadBlocks();
+  }, [selectedDate]);
+
+  async function handleStatusChange(id: string, status: ReservationStatus) {
+    await updateReservationStatus(id, status);
+  }
+
+  async function handleBlock(e: React.FormEvent) {
+    e.preventDefault();
+    setBlockError(null);
+    try {
+      const data = await apiRequest<{ slot: BlockedSlot }>("/api/blocked-slots", {
+        method: "POST",
+        body: JSON.stringify({
+          date: selectedDate,
+          startTime,
+          endTime,
+          reason: reason.trim() || undefined,
+        }),
+      });
+      setBlockedSlots((prev) => [...prev, data.slot]);
+      setBlockModalOpen(false);
+      setReason("");
+      await refresh();
+    } catch (err) {
+      setBlockError(err instanceof Error ? err.message : "No se pudo bloquear");
+    }
+  }
+
+  async function handleUnblock(id: string) {
+    await apiRequest(`/api/blocked-slots?id=${id}`, { method: "DELETE" });
+    setBlockedSlots((prev) => prev.filter((slot) => slot.id !== id));
   }
 
   return (
@@ -36,10 +100,25 @@ export default function PanelReservasPage() {
         </button>
       </div>
 
-      <div className="premium-card mt-6 inline-block px-5 py-4">
-        <label htmlFor="panel-date" className="text-xs font-bold uppercase tracking-widest text-stone-500">
-          Fecha
-        </label>
+      <div className="mt-6 grid gap-4 sm:grid-cols-3">
+        <PanelStatCard
+          label="Reservas del día"
+          tone="forest"
+          value={<span className="text-cactus-forest">{activeReservations.length}</span>}
+        />
+        <PanelStatCard
+          label="Comensales"
+          tone="sunset"
+          value={<span className="text-cactus-sunset">{totalGuests}</span>}
+        />
+        <PanelStatCard
+          label="Pendientes"
+          tone="lime"
+          value={<span className="text-cactus-charcoal">{pendingReservations.length}</span>}
+        />
+      </div>
+
+      <PanelStatCard label="Fecha" tone="neutral" className="mt-4 inline-block min-w-[220px]">
         <input
           id="panel-date"
           type="date"
@@ -47,10 +126,37 @@ export default function PanelReservasPage() {
           onChange={(e) => setSelectedDate(e.target.value)}
           className="input-premium mt-2"
         />
-      </div>
+      </PanelStatCard>
+
+      {blockedSlots.length > 0 && (
+        <div className="premium-card mt-4 p-4">
+          <p className="text-sm font-bold text-stone-700">Horarios bloqueados</p>
+          <ul className="mt-2 space-y-2 text-sm">
+            {blockedSlots.map((slot) => (
+              <li key={slot.id} className="flex items-center justify-between">
+                <span>
+                  {slot.startTime} – {slot.endTime}
+                  {slot.reason ? ` · ${slot.reason}` : ""}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => void handleUnblock(slot.id)}
+                  className="text-xs font-semibold text-red-700"
+                >
+                  Quitar
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="premium-card mt-6 overflow-hidden">
-        {dayReservations.length === 0 ? (
+        {loading ? (
+          <p className="p-8 text-center text-stone-500">Cargando agenda…</p>
+        ) : error ? (
+          <p className="p-8 text-center text-red-700">{error}</p>
+        ) : dayReservations.length === 0 ? (
           <p className="p-8 text-center text-stone-500">
             No hay reservas para esta fecha.
           </p>
@@ -86,21 +192,21 @@ export default function PanelReservasPage() {
                         <div className="flex flex-wrap gap-1.5">
                           <button
                             type="button"
-                            onClick={() => handleStatusChange(r.id, "completed")}
+                            onClick={() => void handleStatusChange(r.id, "completed")}
                             className="rounded-md bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-800 transition hover:bg-green-200"
                           >
                             Llegó
                           </button>
                           <button
                             type="button"
-                            onClick={() => handleStatusChange(r.id, "no_show")}
+                            onClick={() => void handleStatusChange(r.id, "no_show")}
                             className="rounded-md bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-800 transition hover:bg-red-200"
                           >
                             No llegó
                           </button>
                           <button
                             type="button"
-                            onClick={() => handleStatusChange(r.id, "cancelled")}
+                            onClick={() => void handleStatusChange(r.id, "cancelled")}
                             className="rounded-md bg-stone-200 px-2.5 py-1 text-xs font-semibold text-stone-700 transition hover:bg-stone-300"
                           >
                             Canceló
@@ -121,24 +227,80 @@ export default function PanelReservasPage() {
       </div>
 
       {blockModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-cactus-charcoal/50 p-4 backdrop-blur-sm">
-          <div className="premium-card w-full max-w-md p-6">
-            <h2 className="font-display text-xl font-bold text-cactus-charcoal">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="block-slot-title"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-cactus-charcoal/50 p-4 backdrop-blur-sm"
+        >
+          <form
+            onSubmit={handleBlock}
+            className="w-full max-w-md rounded-2xl border-2 border-cactus-forest/35 bg-gradient-to-br from-white via-white to-cactus-forest/8 p-6 shadow-premium ring-1 ring-cactus-forest/10"
+          >
+            <h2 id="block-slot-title" className="font-display text-xl font-bold text-cactus-charcoal">
               Bloquear horario
             </h2>
             <p className="mt-2 text-sm text-stone-600">
-              {/* TODO: implementar lógica de bloqueo de horarios en Fase 2 */}
-              Esta función estará disponible en una fase posterior. Por ahora
-              puedes marcar reservas como canceladas manualmente.
+              Ese rango no estará disponible para reservas públicas.
             </p>
-            <button
-              type="button"
-              onClick={() => setBlockModalOpen(false)}
-              className="btn-secondary mt-6 w-full py-3 text-sm"
-            >
-              Entendido
-            </button>
-          </div>
+            {blockError && (
+              <p className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">
+                {blockError}
+              </p>
+            )}
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <div>
+                <label htmlFor="block-start" className="text-sm font-semibold">
+                  Desde
+                </label>
+                <input
+                  id="block-start"
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  required
+                  className="input-premium mt-1"
+                />
+              </div>
+              <div>
+                <label htmlFor="block-end" className="text-sm font-semibold">
+                  Hasta
+                </label>
+                <input
+                  id="block-end"
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  required
+                  className="input-premium mt-1"
+                />
+              </div>
+            </div>
+            <div className="mt-3">
+              <label htmlFor="block-reason" className="text-sm font-semibold">
+                Motivo (opcional)
+              </label>
+              <input
+                id="block-reason"
+                type="text"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                className="input-premium mt-1"
+              />
+            </div>
+            <div className="mt-6 flex gap-2">
+              <button type="submit" className="btn-secondary flex-1 py-3 text-sm">
+                Bloquear
+              </button>
+              <button
+                type="button"
+                onClick={() => setBlockModalOpen(false)}
+                className="flex-1 rounded-xl border-2 border-cactus-forest/35 bg-white px-4 py-3 text-sm font-semibold text-cactus-forest transition hover:bg-cactus-forest/5"
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
         </div>
       )}
     </div>

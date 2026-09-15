@@ -8,12 +8,8 @@ export default function ReservarPage() {
   return (
     <div className="mesh-warm min-h-screen">
       <Header />
-      <PageBanner
-        image={RESERVATION_BANNER}
-        title="Reservar mesa"
-        subtitle="Elige tu fecha y horario. Solo mostramos disponibilidad real."
-      />
-      <main className="relative -mt-6 px-4 pb-12">
+      <PageBanner image={RESERVATION_BANNER} variant="showcase" />
+      <main className="px-4 pt-8 pb-12 sm:pt-10">
         <ReservationForm />
       </main>
       <Footer />

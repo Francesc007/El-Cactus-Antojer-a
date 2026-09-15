@@ -15,7 +15,7 @@ export const OPERATING_HOURS = [
   },
 ] as const;
 
-export const CLOSED_DAYS_LABEL = "Lun – Jue cerrado";
+export const CLOSED_DAYS_LABEL = "Lun – Jue";
 
 export const BUSINESS_INFO = {
   name: "El Cactus Antojería",

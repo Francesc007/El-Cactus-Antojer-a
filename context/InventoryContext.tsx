@@ -4,167 +4,194 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from "react";
-import { calculateStock, isLowStock } from "@/lib/inventory";
-import {
-  getInitialMovements,
-  getInitialProducts,
-} from "@/lib/inventory-mock-data";
+import { apiRequest } from "@/lib/api-client";
+import { getStockStatus, isLowStock, type StockStatus } from "@/lib/inventory";
 import type {
   MovementFilters,
   NewMovementInput,
   NewProductInput,
-  Product,
+  ProductWithStock,
   StockMovement,
   UpdateProductInput,
 } from "@/lib/types";
 
 type InventoryContextValue = {
-  products: Product[];
-  movements: StockMovement[];
+  products: ProductWithStock[];
+  loading: boolean;
+  error: string | null;
+  refresh: () => Promise<void>;
   getStock: (productId: string) => number;
+  getProductStockStatus: (productId: string) => StockStatus;
   isProductLowStock: (productId: string) => boolean;
-  addProduct: (input: NewProductInput) => Product;
-  updateProduct: (id: string, input: UpdateProductInput) => void;
-  addMovement: (input: NewMovementInput) => {
+  addProduct: (input: NewProductInput) => Promise<ProductWithStock>;
+  updateProduct: (id: string, input: UpdateProductInput) => Promise<void>;
+  deleteProduct: (id: string) => Promise<void>;
+  addMovement: (input: NewMovementInput) => Promise<{
     movement: StockMovement;
     triggeredLowStock: boolean;
     stockAfter: number;
-  };
-  getFilteredMovements: (filters: MovementFilters) => StockMovement[];
-  lowStockProducts: Product[];
+    lowStockMessage: string | null;
+  }>;
+  getFilteredMovements: (filters: MovementFilters) => Promise<{
+    movements: StockMovement[];
+    total: number;
+    page: number;
+    pageSize: number;
+  }>;
+  lowStockProducts: ProductWithStock[];
+  warningStockProducts: ProductWithStock[];
 };
 
 const InventoryContext = createContext<InventoryContextValue | null>(null);
 
 export function InventoryProvider({ children }: { children: ReactNode }) {
-  const [products, setProducts] = useState<Product[]>(getInitialProducts);
-  const [movements, setMovements] = useState<StockMovement[]>(
-    getInitialMovements
-  );
+  const [products, setProducts] = useState<ProductWithStock[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await apiRequest<{ products: ProductWithStock[] }>(
+        "/api/inventory/products"
+      );
+      setProducts(data.products);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No se pudo cargar el inventario");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
 
   const getStock = useCallback(
-    (productId: string) => calculateStock(productId, movements),
-    [movements]
+    (productId: string) => products.find((p) => p.id === productId)?.stock ?? 0,
+    [products]
+  );
+
+  const getProductStockStatus = useCallback(
+    (productId: string): StockStatus => {
+      const product = products.find((p) => p.id === productId);
+      if (!product) return "ok";
+      return getStockStatus(product, product.stock);
+    },
+    [products]
   );
 
   const isProductLowStock = useCallback(
-    (productId: string) => {
-      const product = products.find((p) => p.id === productId);
-      if (!product) return false;
-      return isLowStock(product, calculateStock(productId, movements));
-    },
-    [products, movements]
+    (productId: string) => getProductStockStatus(productId) === "low",
+    [getProductStockStatus]
   );
 
-  const addProduct = useCallback((input: NewProductInput): Product => {
-    const product: Product = {
-      id: `prod-${Date.now()}`,
-      name: input.name.trim(),
-      unit: input.unit.trim(),
-      minStock: input.minStock,
-    };
-    setProducts((prev) => [...prev, product]);
-    return product;
-  }, []);
-
-  const updateProduct = useCallback((id: string, input: UpdateProductInput) => {
-    setProducts((prev) =>
-      prev.map((p) =>
-        p.id === id
-          ? {
-              ...p,
-              ...(input.name !== undefined && { name: input.name.trim() }),
-              ...(input.unit !== undefined && { unit: input.unit.trim() }),
-              ...(input.minStock !== undefined && { minStock: input.minStock }),
-            }
-          : p
-      )
+  const addProduct = useCallback(async (input: NewProductInput) => {
+    const data = await apiRequest<{ product: ProductWithStock }>(
+      "/api/inventory/products",
+      { method: "POST", body: JSON.stringify(input) }
     );
+    setProducts((prev) => [...prev, data.product].sort((a, b) => a.name.localeCompare(b.name)));
+    return data.product;
   }, []);
 
-  const addMovement = useCallback(
-    (input: NewMovementInput) => {
-      const movement: StockMovement = {
-        id: `mov-${Date.now()}`,
-        productId: input.productId,
-        type: input.type,
-        quantity: input.quantity,
-        date: input.date,
-        note: input.note?.trim() || undefined,
-        createdAt: new Date().toISOString(),
-      };
+  const updateProduct = useCallback(async (id: string, input: UpdateProductInput) => {
+    const data = await apiRequest<{ product: ProductWithStock }>(
+      `/api/inventory/products/${id}`,
+      { method: "PATCH", body: JSON.stringify(input) }
+    );
+    setProducts((prev) => prev.map((item) => (item.id === id ? data.product : item)));
+  }, []);
 
-      setMovements((prev) => [...prev, movement]);
+  const deleteProduct = useCallback(async (id: string) => {
+    await apiRequest<{ ok: true }>(`/api/inventory/products/${id}`, {
+      method: "DELETE",
+    });
+    setProducts((prev) => prev.filter((item) => item.id !== id));
+  }, []);
 
-      const product = products.find((p) => p.id === input.productId);
-      const stockAfter = calculateStock(input.productId, [
-        ...movements,
-        movement,
-      ]);
-      const triggeredLowStock = product
-        ? isLowStock(product, stockAfter)
-        : false;
+  const addMovement = useCallback(async (input: NewMovementInput) => {
+    const data = await apiRequest<{
+      movement: StockMovement;
+      triggeredLowStock: boolean;
+      stockAfter: number;
+      lowStockMessage: string | null;
+    }>("/api/inventory/movements", {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+    await refresh();
+    return data;
+  }, [refresh]);
 
-      return { movement, triggeredLowStock, stockAfter };
-    },
-    [products, movements]
-  );
-
-  const getFilteredMovements = useCallback(
-    (filters: MovementFilters) => {
-      return movements
-        .filter((m) => {
-          if (filters.productId && m.productId !== filters.productId) {
-            return false;
-          }
-          if (filters.dateFrom && m.date < filters.dateFrom) return false;
-          if (filters.dateTo && m.date > filters.dateTo) return false;
-          return true;
-        })
-        .sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt));
-    },
-    [movements]
-  );
+  const getFilteredMovements = useCallback(async (filters: MovementFilters) => {
+    const params = new URLSearchParams();
+    if (filters.productId) params.set("productId", filters.productId);
+    if (filters.dateFrom) params.set("dateFrom", filters.dateFrom);
+    if (filters.dateTo) params.set("dateTo", filters.dateTo);
+    params.set("page", String(filters.page ?? 1));
+    params.set("pageSize", String(filters.pageSize ?? 10));
+    return apiRequest<{
+      movements: StockMovement[];
+      total: number;
+      page: number;
+      pageSize: number;
+    }>(`/api/inventory/movements?${params.toString()}`);
+  }, []);
 
   const lowStockProducts = useMemo(
-    () =>
-      products.filter((p) => isLowStock(p, calculateStock(p.id, movements))),
-    [products, movements]
+    () => products.filter((p) => isLowStock(p, p.stock)),
+    [products]
+  );
+
+  const warningStockProducts = useMemo(
+    () => products.filter((p) => getStockStatus(p, p.stock) === "warning"),
+    [products]
   );
 
   const value = useMemo(
     () => ({
       products,
-      movements,
+      loading,
+      error,
+      refresh,
       getStock,
+      getProductStockStatus,
       isProductLowStock,
       addProduct,
       updateProduct,
+      deleteProduct,
       addMovement,
       getFilteredMovements,
       lowStockProducts,
+      warningStockProducts,
     }),
     [
       products,
-      movements,
+      loading,
+      error,
+      refresh,
       getStock,
+      getProductStockStatus,
       isProductLowStock,
       addProduct,
       updateProduct,
+      deleteProduct,
       addMovement,
       getFilteredMovements,
       lowStockProducts,
+      warningStockProducts,
     ]
   );
 
   return (
-    <InventoryContext.Provider value={value}>
-      {children}
-    </InventoryContext.Provider>
+    <InventoryContext.Provider value={value}>{children}</InventoryContext.Provider>
   );
 }
 

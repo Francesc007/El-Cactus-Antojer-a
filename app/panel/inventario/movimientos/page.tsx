@@ -1,18 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useInventory } from "@/context/InventoryContext";
-import { notifyLowStock } from "@/lib/inventory-notifications";
 import { todayStr } from "@/lib/dates";
+import { PanelSectionCard } from "@/components/panel/PanelSectionCard";
+import { Pagination } from "@/components/ui/Pagination";
 import { Toast } from "@/components/ui/Toast";
+import type { StockMovement } from "@/lib/types";
+
+const PAGE_SIZE = 10;
 
 export default function InventarioMovimientosPage() {
-  const {
-    products,
-    addMovement,
-    getFilteredMovements,
-    getStock,
-  } = useInventory();
+  const { products, addMovement, getFilteredMovements, getStock } = useInventory();
 
   const [productId, setProductId] = useState("");
   const [type, setType] = useState<"in" | "out">("in");
@@ -20,57 +19,79 @@ export default function InventarioMovimientosPage() {
   const [date, setDate] = useState(todayStr());
   const [note, setNote] = useState("");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const [filterProductId, setFilterProductId] = useState("");
   const [filterDateFrom, setFilterDateFrom] = useState("");
   const [filterDateTo, setFilterDateTo] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [movements, setMovements] = useState<StockMovement[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loadingList, setLoadingList] = useState(true);
 
-  const filteredMovements = useMemo(
-    () =>
-      getFilteredMovements({
+  async function loadMovements(page = currentPage) {
+    setLoadingList(true);
+    try {
+      const result = await getFilteredMovements({
         productId: filterProductId || undefined,
         dateFrom: filterDateFrom || undefined,
         dateTo: filterDateTo || undefined,
-      }),
-    [getFilteredMovements, filterProductId, filterDateFrom, filterDateTo]
-  );
+        page,
+        pageSize: PAGE_SIZE,
+      });
+      setMovements(result.movements);
+      setTotal(result.total);
+    } finally {
+      setLoadingList(false);
+    }
+  }
+
+  useEffect(() => {
+    void loadMovements(currentPage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterProductId, filterDateFrom, filterDateTo, currentPage, getFilteredMovements]);
+
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   function getProductName(id: string) {
     return products.find((p) => p.id === id)?.name ?? "—";
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!productId || quantity <= 0) return;
-
-    const result = addMovement({
-      productId,
-      type,
-      quantity,
-      date,
-      note: note.trim() || undefined,
-    });
-
-    if (result.triggeredLowStock) {
-      const product = products.find((p) => p.id === productId);
-      if (product) {
-        const notification = notifyLowStock(product, result.stockAfter);
-        setToastMessage(notification.message);
+    setFormError(null);
+    try {
+      const result = await addMovement({
+        productId,
+        type,
+        quantity,
+        date,
+        note: note.trim() || undefined,
+      });
+      if (result.lowStockMessage) {
+        setToastMessage(result.lowStockMessage);
       }
+      setQuantity(1);
+      setNote("");
+      setCurrentPage(1);
+      await loadMovements(1);
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : "No se pudo registrar el movimiento");
     }
-
-    setQuantity(1);
-    setNote("");
   }
 
   return (
     <div>
       <div className="grid gap-6 lg:grid-cols-2">
-        <form onSubmit={handleSubmit} className="premium-card space-y-4 p-5">
+        <PanelSectionCard tone="forest" className="p-5">
+          <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
           <h2 className="font-display text-lg font-bold text-cactus-charcoal">
             Registrar movimiento
           </h2>
-
+          {formError && (
+            <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{formError}</p>
+          )}
           <div>
             <label htmlFor="mov-product" className="text-sm font-semibold">
               Producto
@@ -90,7 +111,6 @@ export default function InventarioMovimientosPage() {
               ))}
             </select>
           </div>
-
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label htmlFor="mov-type" className="text-sm font-semibold">
@@ -122,7 +142,6 @@ export default function InventarioMovimientosPage() {
               />
             </div>
           </div>
-
           <div>
             <label htmlFor="mov-date" className="text-sm font-semibold">
               Fecha
@@ -136,7 +155,6 @@ export default function InventarioMovimientosPage() {
               className="input-premium mt-1"
             />
           </div>
-
           <div>
             <label htmlFor="mov-note" className="text-sm font-semibold">
               Nota (opcional)
@@ -150,13 +168,13 @@ export default function InventarioMovimientosPage() {
               className="input-premium mt-1"
             />
           </div>
-
           <button type="submit" className="btn-secondary w-full py-3 text-sm">
             Registrar {type === "in" ? "entrada" : "salida"}
           </button>
-        </form>
+          </form>
+        </PanelSectionCard>
 
-        <div className="premium-card p-5">
+        <PanelSectionCard tone="sunset" className="p-5">
           <h2 className="font-display text-lg font-bold text-cactus-charcoal">
             Filtrar historial
           </h2>
@@ -168,7 +186,10 @@ export default function InventarioMovimientosPage() {
               <select
                 id="filt-product"
                 value={filterProductId}
-                onChange={(e) => setFilterProductId(e.target.value)}
+                onChange={(e) => {
+                  setFilterProductId(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="input-premium mt-1"
               >
                 <option value="">Todos</option>
@@ -188,7 +209,10 @@ export default function InventarioMovimientosPage() {
                   id="filt-from"
                   type="date"
                   value={filterDateFrom}
-                  onChange={(e) => setFilterDateFrom(e.target.value)}
+                  onChange={(e) => {
+                    setFilterDateFrom(e.target.value);
+                    setCurrentPage(1);
+                  }}
                   className="input-premium mt-1"
                 />
               </div>
@@ -200,40 +224,30 @@ export default function InventarioMovimientosPage() {
                   id="filt-to"
                   type="date"
                   value={filterDateTo}
-                  onChange={(e) => setFilterDateTo(e.target.value)}
+                  onChange={(e) => {
+                    setFilterDateTo(e.target.value);
+                    setCurrentPage(1);
+                  }}
                   className="input-premium mt-1"
                 />
               </div>
             </div>
-            {(filterProductId || filterDateFrom || filterDateTo) && (
-              <button
-                type="button"
-                onClick={() => {
-                  setFilterProductId("");
-                  setFilterDateFrom("");
-                  setFilterDateTo("");
-                }}
-                className="text-sm font-semibold text-cactus-forest hover:text-cactus-sunset"
-              >
-                Limpiar filtros
-              </button>
-            )}
           </div>
-        </div>
+        </PanelSectionCard>
       </div>
 
-      <div className="premium-card mt-6 overflow-hidden">
+      <PanelSectionCard tone="lime" className="mt-6">
         <div className="border-b border-cactus-sand/60 px-5 py-4">
           <h2 className="font-display text-lg font-bold text-cactus-charcoal">
             Historial de movimientos
           </h2>
           <p className="text-sm text-stone-500">
-            {filteredMovements.length}{" "}
-            {filteredMovements.length === 1 ? "registro" : "registros"}
+            {total} {total === 1 ? "registro" : "registros"}
           </p>
         </div>
-
-        {filteredMovements.length === 0 ? (
+        {loadingList ? (
+          <p className="p-8 text-center text-stone-500">Cargando historial…</p>
+        ) : movements.length === 0 ? (
           <p className="p-8 text-center text-stone-500">
             No hay movimientos con estos filtros.
           </p>
@@ -241,33 +255,18 @@ export default function InventarioMovimientosPage() {
           <table className="w-full text-left text-sm">
             <thead className="border-b border-cactus-sand/60 bg-stone-50/80">
               <tr>
-                <th className="px-5 py-3 font-semibold text-stone-600">
-                  Fecha
-                </th>
-                <th className="px-5 py-3 font-semibold text-stone-600">
-                  Producto
-                </th>
-                <th className="px-5 py-3 font-semibold text-stone-600">
-                  Tipo
-                </th>
-                <th className="px-5 py-3 font-semibold text-stone-600">
-                  Cantidad
-                </th>
-                <th className="px-5 py-3 font-semibold text-stone-600">
-                  Nota
-                </th>
+                <th className="px-5 py-3 font-semibold text-stone-600">Fecha</th>
+                <th className="px-5 py-3 font-semibold text-stone-600">Producto</th>
+                <th className="px-5 py-3 font-semibold text-stone-600">Tipo</th>
+                <th className="px-5 py-3 font-semibold text-stone-600">Cantidad</th>
+                <th className="px-5 py-3 font-semibold text-stone-600">Nota</th>
               </tr>
             </thead>
             <tbody>
-              {filteredMovements.map((mov) => (
-                <tr
-                  key={mov.id}
-                  className="border-b border-stone-100 last:border-0"
-                >
+              {movements.map((mov) => (
+                <tr key={mov.id} className="border-b border-stone-100 last:border-0">
                   <td className="px-5 py-3 font-mono">{mov.date}</td>
-                  <td className="px-5 py-3 font-medium">
-                    {getProductName(mov.productId)}
-                  </td>
+                  <td className="px-5 py-3 font-medium">{getProductName(mov.productId)}</td>
                   <td className="px-5 py-3">
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs font-bold ${
@@ -283,26 +282,22 @@ export default function InventarioMovimientosPage() {
                     {mov.type === "in" ? "+" : "−"}
                     {mov.quantity}
                   </td>
-                  <td className="px-5 py-3 text-stone-500">
-                    {mov.note ?? "—"}
-                  </td>
+                  <td className="px-5 py-3 text-stone-500">{mov.note ?? "—"}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         )}
-      </div>
-
-      {/* TODO: exportar a Excel */}
-      <div className="mt-4 text-right">
-        <button
-          type="button"
-          disabled
-          className="cursor-not-allowed rounded-xl border border-dashed border-stone-300 px-4 py-2 text-xs font-semibold text-stone-400"
-        >
-          Exportar a Excel (próximamente)
-        </button>
-      </div>
+        {total > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={total}
+            pageSize={PAGE_SIZE}
+            onPageChange={setCurrentPage}
+          />
+        )}
+      </PanelSectionCard>
 
       {toastMessage && (
         <Toast message={toastMessage} onClose={() => setToastMessage(null)} />

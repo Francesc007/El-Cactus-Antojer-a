@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Bitter, Nunito_Sans } from "next/font/google";
-import { InventoryProvider } from "@/context/InventoryContext";
-import { ReservationProvider } from "@/context/ReservationContext";
+import { BUSINESS_INFO } from "@/lib/business-info";
+import { JsonLd } from "@/components/seo/JsonLd";
 import "./globals.css";
 
 const displayFont = Bitter({
@@ -16,10 +16,31 @@ const sansFont = Nunito_Sans({
   weight: ["400", "600", "700"],
 });
 
+const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+
 export const metadata: Metadata = {
-  title: "El Cactus Antojería",
+  metadataBase: new URL(appUrl),
+  title: {
+    default: "El Cactus Antojería",
+    template: "%s | El Cactus Antojería",
+  },
   description:
     "Antojería mexicana con sabor auténtico. Reserva tu mesa en línea.",
+  icons: { icon: "/logo.png" },
+  openGraph: {
+    title: "El Cactus Antojería",
+    description: "Reserva tu mesa en El Cactus Antojería, Tepeji del Río.",
+    url: appUrl,
+    locale: "es_MX",
+    type: "website",
+    images: ["/cactus%204.jpeg"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "El Cactus Antojería",
+    description: "Reserva tu mesa en El Cactus Antojería.",
+  },
+  robots: { index: true, follow: true },
 };
 
 export default function RootLayout({
@@ -33,9 +54,25 @@ export default function RootLayout({
         className={`${displayFont.variable} ${sansFont.variable} font-sans`}
         suppressHydrationWarning
       >
-        <ReservationProvider>
-          <InventoryProvider>{children}</InventoryProvider>
-        </ReservationProvider>
+        <JsonLd
+          data={{
+            "@context": "https://schema.org",
+            "@type": "Restaurant",
+            name: BUSINESS_INFO.name,
+            address: {
+              "@type": "PostalAddress",
+              streetAddress: BUSINESS_INFO.address.line1,
+              addressLocality: "Tepeji del Río de Ocampo",
+              addressRegion: "Hidalgo",
+              postalCode: BUSINESS_INFO.address.zip,
+              addressCountry: "MX",
+            },
+            url: appUrl,
+            servesCuisine: "Mexicana",
+            telephone: "+52-773-149-1349",
+          }}
+        />
+        {children}
       </body>
     </html>
   );

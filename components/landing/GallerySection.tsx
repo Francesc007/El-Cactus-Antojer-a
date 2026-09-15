@@ -1,8 +1,34 @@
 import Image from "next/image";
 import { GALLERY_IMAGES } from "@/lib/gallery-images";
 
+function GalleryImage({
+  image,
+  sizes,
+  rounded = "rounded-xl",
+}: {
+  image: (typeof GALLERY_IMAGES)[number];
+  sizes: string;
+  rounded?: string;
+}) {
+  return (
+    <div
+      className={`relative aspect-[16/10] overflow-hidden shadow-premium ${rounded}`}
+    >
+      <Image
+        src={image.src}
+        alt={image.alt}
+        fill
+        sizes={sizes}
+        className="object-cover transition duration-500 hover:scale-105"
+      />
+    </div>
+  );
+}
+
 export function GallerySection() {
-  const [featured, ...rest] = GALLERY_IMAGES;
+  const featured = GALLERY_IMAGES[0];
+  const middle = GALLERY_IMAGES.slice(1, -1);
+  const closing = GALLERY_IMAGES[GALLERY_IMAGES.length - 1];
 
   return (
     <section id="galeria" className="premium-section mesh-warm px-4 py-14">
@@ -31,20 +57,21 @@ export function GallerySection() {
             </p>
           </div>
 
-          {rest.map((image) => (
-            <div
+          {middle.map((image) => (
+            <GalleryImage
               key={image.src}
-              className="relative aspect-square overflow-hidden rounded-xl shadow-premium"
-            >
-              <Image
-                src={image.src}
-                alt={image.alt}
-                fill
-                sizes="(max-width: 512px) 50vw, 256px"
-                className="object-cover transition duration-500 hover:scale-105"
-              />
-            </div>
+              image={image}
+              sizes="(max-width: 512px) 50vw, 256px"
+            />
           ))}
+
+          <div className="col-span-2">
+            <GalleryImage
+              image={closing}
+              sizes="(max-width: 512px) 100vw, 512px"
+              rounded="rounded-2xl"
+            />
+          </div>
         </div>
       </div>
     </section>

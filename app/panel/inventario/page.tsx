@@ -2,42 +2,53 @@
 
 import Link from "next/link";
 import { useInventory } from "@/context/InventoryContext";
+import { PanelSectionCard } from "@/components/panel/PanelSectionCard";
+import { PanelStatCard } from "@/components/panel/PanelStatCard";
 import { StockStatusBadge } from "@/components/panel/inventory/StockStatusBadge";
+import { compareStockStatus, getStockRowClass } from "@/lib/inventory-ui";
 
 export default function InventarioDashboardPage() {
-  const { products, getStock, isProductLowStock, lowStockProducts } =
-    useInventory();
+  const {
+    products,
+    getStock,
+    getProductStockStatus,
+    lowStockProducts,
+    warningStockProducts,
+    loading,
+    error,
+  } = useInventory();
 
   const sortedProducts = [...products].sort((a, b) => {
-    const aLow = isProductLowStock(a.id);
-    const bLow = isProductLowStock(b.id);
-    if (aLow !== bLow) return aLow ? -1 : 1;
+    const statusCompare = compareStockStatus(
+      getProductStockStatus(a.id),
+      getProductStockStatus(b.id)
+    );
+    if (statusCompare !== 0) return statusCompare;
     return a.name.localeCompare(b.name);
   });
 
+  if (loading) return <p className="text-stone-500">Cargando inventario…</p>;
+  if (error) return <p className="text-red-700">{error}</p>;
+
   return (
     <div>
-      <div className="grid gap-4 sm:grid-cols-3">
-        <div className="premium-card p-5">
-          <p className="text-xs font-bold uppercase tracking-widest text-stone-400">
-            Productos
-          </p>
-          <p className="mt-2 font-display text-3xl font-bold text-cactus-forest">
-            {products.length}
-          </p>
-        </div>
-        <div className="premium-card p-5">
-          <p className="text-xs font-bold uppercase tracking-widest text-stone-400">
-            Stock bajo
-          </p>
-          <p className="mt-2 font-display text-3xl font-bold text-red-600">
-            {lowStockProducts.length}
-          </p>
-        </div>
-        <div className="premium-card p-5">
-          <p className="text-xs font-bold uppercase tracking-widest text-stone-400">
-            Acciones rápidas
-          </p>
+      <div className="grid gap-4 sm:grid-cols-4">
+        <PanelStatCard
+          label="Productos"
+          tone="forest"
+          value={<span className="text-cactus-forest">{products.length}</span>}
+        />
+        <PanelStatCard
+          label="Stock bajo"
+          tone="danger"
+          value={<span className="text-red-600">{lowStockProducts.length}</span>}
+        />
+        <PanelStatCard
+          label="En atención"
+          tone="warning"
+          value={<span className="text-amber-600">{warningStockProducts.length}</span>}
+        />
+        <PanelStatCard label="Acciones rápidas" tone="lime">
           <div className="mt-3 flex flex-col gap-2 text-sm">
             <Link
               href="/panel/inventario/movimientos"
@@ -52,17 +63,32 @@ export default function InventarioDashboardPage() {
               + Nuevo producto
             </Link>
           </div>
-        </div>
+        </PanelStatCard>
       </div>
 
+      {warningStockProducts.length > 0 && (
+        <div className="premium-card mt-6 border-amber-200 bg-amber-50/60 p-4">
+          <p className="text-sm font-bold text-amber-800">
+            {warningStockProducts.length}{" "}
+            {warningStockProducts.length === 1
+              ? "producto se acerca"
+              : "productos se acercan"}{" "}
+            al límite
+          </p>
+          <p className="mt-1 text-sm text-amber-700/80">
+            {warningStockProducts.map((p) => p.name).join(", ")}
+          </p>
+        </div>
+      )}
+
       {lowStockProducts.length > 0 && (
-        <div className="premium-card mt-6 border-red-200 bg-red-50/50 p-4">
+        <div className="premium-card mt-4 border-red-200 bg-red-50/50 p-4">
           <p className="text-sm font-bold text-red-700">
             {lowStockProducts.length}{" "}
             {lowStockProducts.length === 1
-              ? "producto requiere"
-              : "productos requieren"}{" "}
-            atención
+              ? "producto está"
+              : "productos están"}{" "}
+            por debajo del mínimo
           </p>
           <p className="mt-1 text-sm text-red-600/80">
             {lowStockProducts.map((p) => p.name).join(", ")}
@@ -70,7 +96,7 @@ export default function InventarioDashboardPage() {
         </div>
       )}
 
-      <div className="premium-card mt-6 overflow-hidden">
+      <PanelSectionCard tone="forest" className="mt-6">
         <div className="border-b border-cactus-sand/60 px-5 py-4">
           <h2 className="font-display text-lg font-bold text-cactus-charcoal">
             Stock actual
@@ -96,13 +122,11 @@ export default function InventarioDashboardPage() {
           <tbody>
             {sortedProducts.map((product) => {
               const stock = getStock(product.id);
-              const low = isProductLowStock(product.id);
+              const status = getProductStockStatus(product.id);
               return (
                 <tr
                   key={product.id}
-                  className={`border-b border-stone-100 last:border-0 ${
-                    low ? "bg-red-50/40" : ""
-                  }`}
+                  className={`border-b border-stone-100 last:border-0 ${getStockRowClass(status)}`}
                 >
                   <td className="px-5 py-3 font-medium">{product.name}</td>
                   <td className="px-5 py-3 font-mono font-semibold">
@@ -112,14 +136,14 @@ export default function InventarioDashboardPage() {
                     {product.minStock} {product.unit}
                   </td>
                   <td className="px-5 py-3">
-                    <StockStatusBadge isLow={low} />
+                    <StockStatusBadge status={status} />
                   </td>
                 </tr>
               );
             })}
           </tbody>
         </table>
-      </div>
+      </PanelSectionCard>
     </div>
   );
 }

@@ -14,14 +14,22 @@ export function Header({ variant = "light" }: { variant?: "light" | "hero" }) {
     >
       <div className="mx-auto flex max-w-lg items-center justify-between px-4 py-3">
         <Link href="/" className="flex items-center gap-3">
-          <Image
-            src="/logo.png"
-            alt="El Cactus Antojería"
-            width={48}
-            height={48}
-            className="rounded-full ring-2 ring-cactus-lime/30"
-            priority
-          />
+          <span
+            className={`flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full p-0.5 shadow-sm ring-2 ${
+              isHero
+                ? "bg-white/95 ring-cactus-lime/50"
+                : "bg-white ring-cactus-lime/40"
+            }`}
+          >
+            <Image
+              src="/logo.png"
+              alt="El Cactus Antojería"
+              width={56}
+              height={56}
+              className="h-full w-full scale-110 object-contain"
+              priority
+            />
+          </span>
           <div>
             <p
               className={`font-display text-lg font-bold leading-tight ${

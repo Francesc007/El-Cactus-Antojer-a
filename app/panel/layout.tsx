@@ -1,3 +1,5 @@
+import { InventoryProvider } from "@/context/InventoryContext";
+import { ReservationProvider } from "@/context/ReservationContext";
 import { PanelSidebar } from "@/components/panel/PanelSidebar";
 
 export default function PanelLayout({
@@ -6,9 +8,13 @@ export default function PanelLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="mesh-warm flex min-h-screen">
-      <PanelSidebar />
-      <main className="flex-1 overflow-auto p-6 sm:p-8">{children}</main>
-    </div>
+    <ReservationProvider>
+      <InventoryProvider>
+        <div className="mesh-warm flex min-h-screen">
+          <PanelSidebar />
+          <main className="flex-1 overflow-auto p-6 sm:p-8">{children}</main>
+        </div>
+      </InventoryProvider>
+    </ReservationProvider>
   );
 }
