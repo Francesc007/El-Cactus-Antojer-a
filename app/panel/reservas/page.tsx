@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useReservations } from "@/context/ReservationContext";
 import { PanelStatCard } from "@/components/panel/PanelStatCard";
+import { DatePicker } from "@/components/ui/DatePicker";
 import { StatusBadge } from "@/components/panel/StatusBadge";
 import { apiRequest } from "@/lib/api-client";
 import { todayStr } from "@/lib/dates";
@@ -122,12 +123,11 @@ export default function PanelReservasPage() {
       </div>
 
       <PanelStatCard label="Fecha" tone="neutral" className="mt-4 inline-block min-w-[220px]">
-        <input
+        <DatePicker
           id="panel-date"
-          type="date"
           value={selectedDate}
-          onChange={(e) => setSelectedDate(e.target.value)}
-          className="input-premium mt-2"
+          onChange={setSelectedDate}
+          className="mt-2"
         />
       </PanelStatCard>
 

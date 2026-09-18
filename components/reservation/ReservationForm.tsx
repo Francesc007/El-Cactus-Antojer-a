@@ -13,6 +13,7 @@ import {
   maxDateStr,
   todayStr,
 } from "@/lib/dates";
+import { DatePicker } from "@/components/ui/DatePicker";
 import { Toast } from "@/components/ui/Toast";
 import type { AvailabilitySlot, Reservation } from "@/lib/types";
 
@@ -163,18 +164,17 @@ export function ReservationForm() {
           <label htmlFor="date" className="block text-sm font-semibold text-stone-700">
             Fecha
           </label>
-          <input
+          <DatePicker
             id="date"
-            type="date"
             value={date}
             min={todayStr()}
             max={maxDateStr()}
-            onChange={(e) => {
-              setDate(e.target.value);
+            onChange={(nextDate) => {
+              setDate(nextDate);
               setTime("");
             }}
             required
-            className="input-premium mt-1"
+            className="mt-1"
           />
         </div>
 

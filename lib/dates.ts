@@ -22,9 +22,13 @@ export function maxDateStr(daysAhead = 30): string {
   return formatLocalDate(d);
 }
 
-export function getDayOfWeek(dateStr: string): number {
+export function parseDateStr(dateStr: string): Date {
   const [y, m, d] = dateStr.split("-").map(Number);
-  return new Date(y, m - 1, d).getDay();
+  return new Date(y, m - 1, d);
+}
+
+export function getDayOfWeek(dateStr: string): number {
+  return parseDateStr(dateStr).getDay();
 }
 
 export function addDaysStr(dateStr: string, days: number): string {
@@ -55,11 +59,11 @@ export function formatDisplayDate(
   dateStr: string,
   options?: { includeYear?: boolean }
 ): string {
-  const [y, m, d] = dateStr.split("-").map(Number);
-  return new Date(y, m - 1, d).toLocaleDateString("es-MX", {
+  const formatted = parseDateStr(dateStr).toLocaleDateString("es-MX", {
     weekday: "long",
     day: "numeric",
     month: "long",
     ...(options?.includeYear ? { year: "numeric" } : {}),
   });
+  return formatted.charAt(0).toUpperCase() + formatted.slice(1);
 }

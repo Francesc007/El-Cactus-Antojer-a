@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useInventory } from "@/context/InventoryContext";
 import { todayStr } from "@/lib/dates";
 import { PanelSectionCard } from "@/components/panel/PanelSectionCard";
+import { DatePicker } from "@/components/ui/DatePicker";
 import { Pagination } from "@/components/ui/Pagination";
 import { Toast } from "@/components/ui/Toast";
 import type { StockMovement } from "@/lib/types";
@@ -146,13 +147,12 @@ export default function InventarioMovimientosPage() {
             <label htmlFor="mov-date" className="text-sm font-semibold">
               Fecha
             </label>
-            <input
+            <DatePicker
               id="mov-date"
-              type="date"
               value={date}
-              onChange={(e) => setDate(e.target.value)}
+              onChange={setDate}
               required
-              className="input-premium mt-1"
+              className="mt-1"
             />
           </div>
           <div>
@@ -205,30 +205,30 @@ export default function InventarioMovimientosPage() {
                 <label htmlFor="filt-from" className="text-sm font-semibold">
                   Desde
                 </label>
-                <input
+                <DatePicker
                   id="filt-from"
-                  type="date"
                   value={filterDateFrom}
-                  onChange={(e) => {
-                    setFilterDateFrom(e.target.value);
+                  onChange={(nextDate) => {
+                    setFilterDateFrom(nextDate);
                     setCurrentPage(1);
                   }}
-                  className="input-premium mt-1"
+                  placeholder="Cualquier fecha"
+                  className="mt-1"
                 />
               </div>
               <div>
                 <label htmlFor="filt-to" className="text-sm font-semibold">
                   Hasta
                 </label>
-                <input
+                <DatePicker
                   id="filt-to"
-                  type="date"
                   value={filterDateTo}
-                  onChange={(e) => {
-                    setFilterDateTo(e.target.value);
+                  onChange={(nextDate) => {
+                    setFilterDateTo(nextDate);
                     setCurrentPage(1);
                   }}
-                  className="input-premium mt-1"
+                  placeholder="Cualquier fecha"
+                  className="mt-1"
                 />
               </div>
             </div>
