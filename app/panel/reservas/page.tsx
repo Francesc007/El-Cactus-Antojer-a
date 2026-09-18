@@ -122,7 +122,7 @@ export default function PanelReservasPage() {
         />
       </div>
 
-      <PanelStatCard label="Fecha" tone="neutral" className="mt-4 inline-block min-w-[220px]">
+      <PanelStatCard label="Fecha" tone="neutral" className="relative z-20 mt-4 inline-block min-w-[220px] overflow-visible">
         <DatePicker
           id="panel-date"
           value={selectedDate}

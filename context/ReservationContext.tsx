@@ -1,10 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { createContext, useContext } from "react";
 import { apiRequest } from "@/lib/api-client";
 import { todayStr } from "@/lib/dates";
+import { isSupabaseConfigured } from "@/lib/env";
+import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 import type { Reservation, ReservationStatus } from "@/lib/types";
+
+type RefreshOptions = {
+  silent?: boolean;
+};
 
 type ReservationContextValue = {
   reservations: Reservation[];
@@ -12,7 +18,7 @@ type ReservationContextValue = {
   error: string | null;
   selectedDate: string;
   setSelectedDate: (date: string) => void;
-  refresh: () => Promise<void>;
+  refresh: (options?: RefreshOptions) => Promise<void>;
   updateReservationStatus: (id: string, status: ReservationStatus) => Promise<void>;
   getReservationsForDate: (date: string) => Reservation[];
 };
@@ -25,24 +31,61 @@ export function ReservationProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const refresh = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const refresh = useCallback(async (options?: RefreshOptions) => {
+    const silent = Boolean(options?.silent);
+    if (!silent) {
+      setLoading(true);
+      setError(null);
+    }
     try {
       const data = await apiRequest<{ reservations: Reservation[] }>(
         `/api/reservations?date=${selectedDate}`
       );
       setReservations(data.reservations);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudieron cargar las reservas");
+      if (!silent) {
+        setError(err instanceof Error ? err.message : "No se pudieron cargar las reservas");
+      }
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
   }, [selectedDate]);
+
+  const refreshRef = useRef(refresh);
+  refreshRef.current = refresh;
 
   useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      void refreshRef.current({ silent: true });
+    }, 4000);
+
+    if (!isSupabaseConfigured()) {
+      return () => window.clearInterval(intervalId);
+    }
+
+    const supabase = createBrowserSupabaseClient();
+    const channel = supabase
+      .channel("panel-reservations")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "reservations" },
+        () => {
+          void refreshRef.current({ silent: true });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      window.clearInterval(intervalId);
+      void supabase.removeChannel(channel);
+    };
+  }, []);
 
   const updateReservationStatus = useCallback(
     async (id: string, status: ReservationStatus) => {
