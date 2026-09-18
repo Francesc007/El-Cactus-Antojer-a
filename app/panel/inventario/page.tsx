@@ -97,10 +97,16 @@ export default function InventarioDashboardPage() {
       )}
 
       <PanelSectionCard tone="forest" className="mt-6">
-        <div className="border-b border-cactus-sand/60 px-5 py-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-cactus-sand/60 px-5 py-4">
           <h2 className="font-display text-lg font-bold text-cactus-charcoal">
             Stock actual
           </h2>
+          <a
+            href="/api/inventory/stock-report"
+            className="rounded-xl bg-cactus-forest px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-cactus-forest-dark sm:text-sm"
+          >
+            Descargar PDF
+          </a>
         </div>
         <table className="w-full text-left text-sm">
           <thead className="border-b border-cactus-sand/60 bg-stone-50/80">
