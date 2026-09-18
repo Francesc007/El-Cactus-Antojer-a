@@ -139,18 +139,22 @@ export async function listMovements(filters: MovementFilters): Promise<{
   };
 }
 
-export async function createMovement(input: NewMovementInput): Promise<{
+export async function createMovement(
+  input: NewMovementInput,
+  createdBy: string
+): Promise<{
   movement: StockMovement;
   stockAfter: number;
   triggeredLowStock: boolean;
 }> {
-  const supabase = await createServerSupabaseClient();
-  const { data, error } = await supabase.rpc("add_stock_movement_safe", {
+  const admin = createAdminSupabaseClient();
+  const { data, error } = await admin.rpc("add_stock_movement_safe", {
     p_product_id: input.productId,
     p_type: input.type,
     p_quantity: input.quantity,
     p_date: input.date,
     p_note: input.note ?? null,
+    p_created_by: createdBy,
   });
 
   if (error) {

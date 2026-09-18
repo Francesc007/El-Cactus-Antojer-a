@@ -24,9 +24,9 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    await requireStaff();
+    const { profile } = await requireStaff();
     const body = newMovementSchema.parse(await request.json());
-    const result = await createMovement(body);
+    const result = await createMovement(body, profile.id);
     let lowStockMessage: string | null = null;
     if (result.triggeredLowStock) {
       const products = await listProducts();

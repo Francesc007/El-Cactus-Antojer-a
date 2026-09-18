@@ -138,6 +138,7 @@ create index notification_outbox_status_idx on public.notification_outbox (statu
 create or replace function public.set_updated_at()
 returns trigger
 language plpgsql
+set search_path = public, pg_temp
 as $$
 begin
   new.updated_at = now();
@@ -169,7 +170,7 @@ create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, pg_temp
 as $$
 declare
   v_role public.user_role := 'staff';
@@ -194,8 +195,8 @@ create or replace function public.is_staff()
 returns boolean
 language sql
 stable
-security definer
-set search_path = public
+security invoker
+set search_path = public, pg_temp
 as $$
   select exists (
     select 1
@@ -210,6 +211,7 @@ create or replace function public.time_to_minutes(t time)
 returns integer
 language sql
 immutable
+set search_path = public, pg_temp
 as $$
   select (extract(hour from t)::int * 60) + extract(minute from t)::int;
 $$;
@@ -223,11 +225,13 @@ create or replace function public.ranges_overlap(
 returns boolean
 language sql
 immutable
+set search_path = public, pg_temp
 as $$
   select start_a < end_b and start_b < end_a;
 $$;
 
-create or replace view public.product_stock as
+create or replace view public.product_stock
+with (security_invoker = true) as
 select
   p.id,
   p.name,
@@ -257,7 +261,7 @@ create or replace function public.create_reservation_safe(
 returns public.reservations
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, pg_temp
 as $$
 declare
   v_settings public.business_settings;
@@ -368,12 +372,13 @@ create or replace function public.add_stock_movement_safe(
   p_type public.stock_movement_type,
   p_quantity numeric,
   p_date date,
-  p_note text
+  p_note text,
+  p_created_by uuid
 )
 returns public.stock_movements
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, pg_temp
 as $$
 declare
   v_stock numeric;
@@ -383,7 +388,7 @@ begin
     raise exception 'INVALID_QUANTITY';
   end if;
 
-  if not public.is_staff() then
+  if coalesce(auth.role(), '') is distinct from 'service_role' then
     raise exception 'FORBIDDEN';
   end if;
 
@@ -417,7 +422,7 @@ begin
     p_quantity,
     p_date,
     nullif(trim(p_note), ''),
-    auth.uid()
+    p_created_by
   )
   returning * into v_row;
 
@@ -439,7 +444,7 @@ alter table public.rate_limits enable row level security;
 
 create policy profiles_select_own
 on public.profiles for select
-using (id = auth.uid() or public.is_staff());
+using (id = auth.uid());
 
 create policy profiles_update_own
 on public.profiles for update
@@ -505,7 +510,7 @@ create or replace function public.consume_rate_limit(
 returns jsonb
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, pg_temp
 as $$
 declare
   v_now timestamptz := now();
@@ -549,11 +554,28 @@ begin
 end;
 $$;
 
+revoke all on function public.set_updated_at() from public, anon;
+grant execute on function public.set_updated_at() to authenticated, service_role;
+
+revoke all on function public.handle_new_user() from public, anon, authenticated;
+
+revoke all on function public.is_staff() from public, anon;
+grant execute on function public.is_staff() to authenticated;
+
+revoke all on function public.time_to_minutes(time) from public, anon;
+revoke all on function public.ranges_overlap(integer, integer, integer, integer) from public, anon;
+
+revoke all on function public.create_reservation_safe(text, text, integer, date, time, boolean)
+from public, anon, authenticated;
 grant execute on function public.create_reservation_safe(text, text, integer, date, time, boolean)
 to service_role;
 
-grant execute on function public.add_stock_movement_safe(uuid, public.stock_movement_type, numeric, date, text)
-to authenticated;
+revoke all on function public.add_stock_movement_safe(uuid, public.stock_movement_type, numeric, date, text, uuid)
+from public, anon, authenticated;
+grant execute on function public.add_stock_movement_safe(uuid, public.stock_movement_type, numeric, date, text, uuid)
+to service_role;
 
+revoke all on function public.consume_rate_limit(text, integer, integer)
+from public, anon, authenticated;
 grant execute on function public.consume_rate_limit(text, integer, integer)
 to service_role;
