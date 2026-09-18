@@ -6,7 +6,7 @@ export default function InventarioLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div>
+    <div className="min-w-0">
       <p className="section-eyebrow">Gestión interna</p>
       <h1 className="section-title mt-1">Inventario</h1>
       <div className="mt-6">

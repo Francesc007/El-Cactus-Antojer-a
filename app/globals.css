@@ -34,7 +34,7 @@
   }
 
   .section-title {
-    @apply font-display text-2xl font-bold text-cactus-forest md:text-3xl;
+    @apply break-words font-display text-2xl font-bold text-cactus-forest md:text-3xl;
   }
 
   .section-eyebrow {

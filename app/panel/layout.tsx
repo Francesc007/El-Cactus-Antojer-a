@@ -1,6 +1,6 @@
 import { InventoryProvider } from "@/context/InventoryContext";
 import { ReservationProvider } from "@/context/ReservationContext";
-import { PanelSidebar } from "@/components/panel/PanelSidebar";
+import { PanelShell } from "@/components/panel/PanelShell";
 
 export default function PanelLayout({
   children,
@@ -10,10 +10,7 @@ export default function PanelLayout({
   return (
     <ReservationProvider>
       <InventoryProvider>
-        <div className="mesh-warm flex h-screen overflow-hidden">
-          <PanelSidebar />
-          <main className="min-h-0 flex-1 overflow-y-auto p-6 sm:p-8">{children}</main>
-        </div>
+        <PanelShell>{children}</PanelShell>
       </InventoryProvider>
     </ReservationProvider>
   );

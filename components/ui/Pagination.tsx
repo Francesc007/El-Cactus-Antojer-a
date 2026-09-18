@@ -19,7 +19,7 @@ export function Pagination({
   const end = Math.min(currentPage * pageSize, totalItems);
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-cactus-sand/60 px-5 py-4">
+    <div className="flex flex-wrap items-center justify-between gap-3 overflow-x-auto border-t border-cactus-sand/60 px-4 py-4 sm:px-5">
       <p className="text-sm text-stone-500">
         Mostrando {start}–{end} de {totalItems}
       </p>

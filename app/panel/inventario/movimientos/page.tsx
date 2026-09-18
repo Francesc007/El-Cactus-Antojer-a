@@ -200,7 +200,7 @@ export default function InventarioMovimientosPage() {
                 ))}
               </select>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <label htmlFor="filt-from" className="text-sm font-semibold">
                   Desde
@@ -252,7 +252,8 @@ export default function InventarioMovimientosPage() {
             No hay movimientos con estos filtros.
           </p>
         ) : (
-          <table className="w-full text-left text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[640px] text-left text-sm">
             <thead className="border-b border-cactus-sand/60 bg-stone-50/80">
               <tr>
                 <th className="px-5 py-3 font-semibold text-stone-600">Fecha</th>
@@ -287,6 +288,7 @@ export default function InventarioMovimientosPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
         {total > 0 && (
           <Pagination

@@ -18,14 +18,14 @@ export function InventorySubNav() {
   }
 
   return (
-    <nav className="flex flex-wrap gap-2 border-b border-cactus-sand/60 pb-4">
+    <nav className="flex gap-2 overflow-x-auto overscroll-x-contain border-b border-cactus-sand/60 pb-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       {SUB_NAV.map((item) => {
         const active = isActive(item.href, item.exact);
         return (
           <Link
             key={item.href}
             href={item.href}
-            className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
+            className={`shrink-0 rounded-xl px-4 py-2 text-sm font-semibold transition ${
               active
                 ? "bg-cactus-forest text-white shadow-glow-green"
                 : "bg-white text-stone-600 ring-1 ring-cactus-sand hover:text-cactus-forest"

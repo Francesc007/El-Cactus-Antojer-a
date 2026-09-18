@@ -113,7 +113,7 @@ export default function InventarioProductosPage() {
             resetForm();
             setShowForm(true);
           }}
-          className="btn-secondary px-5 py-2.5 text-sm"
+          className="btn-secondary w-full px-5 py-2.5 text-sm sm:w-auto"
         >
           + Nuevo producto
         </button>
@@ -229,7 +229,8 @@ export default function InventarioProductosPage() {
       />
 
       <PanelSectionCard tone="lime" className="mt-6">
-        <table className="w-full text-left text-sm">
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[640px] text-left text-sm">
           <thead className="border-b border-cactus-sand/60 bg-stone-50/80">
             <tr>
               <th className="px-5 py-3 font-semibold text-stone-600">Nombre</th>
@@ -280,6 +281,7 @@ export default function InventarioProductosPage() {
             })}
           </tbody>
         </table>
+        </div>
       </PanelSectionCard>
     </div>
   );

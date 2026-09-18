@@ -36,7 +36,7 @@ export function PanelStatCard({
 }: PanelStatCardProps) {
   return (
     <div
-      className={`rounded-2xl border-2 p-5 shadow-premium backdrop-blur-sm transition duration-200 ease-out hover:-translate-y-1 hover:scale-[1.02] hover:shadow-lg sm:p-6 ${toneClasses[tone]} ${className}`}
+      className={`rounded-2xl border-2 p-5 shadow-premium backdrop-blur-sm transition duration-200 ease-out sm:p-6 lg:hover:-translate-y-1 lg:hover:scale-[1.02] lg:hover:shadow-lg ${toneClasses[tone]} ${className}`}
     >
       <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-stone-500">
         {icon && <span className="text-base normal-case tracking-normal">{icon}</span>}

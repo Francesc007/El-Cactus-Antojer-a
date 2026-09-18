@@ -84,18 +84,18 @@ export default function PanelReservasPage() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+        <div className="min-w-0">
           <p className="section-eyebrow">Operación</p>
           <h1 className="section-title mt-1">Agenda de reservas</h1>
-          <p className="mt-1 text-stone-600">
+          <p className="mt-1 text-sm text-stone-600 sm:text-base">
             Gestiona llegadas, cancelaciones y quienes no llegaron del día.
           </p>
         </div>
         <button
           type="button"
           onClick={() => setBlockModalOpen(true)}
-          className="rounded-xl border border-cactus-sand bg-white px-4 py-2.5 text-sm font-semibold text-cactus-charcoal shadow-sm transition hover:border-cactus-forest hover:text-cactus-forest"
+          className="w-full rounded-xl border border-cactus-sand bg-white px-4 py-2.5 text-sm font-semibold text-cactus-charcoal shadow-sm transition hover:border-cactus-forest hover:text-cactus-forest sm:w-auto"
         >
           Bloquear horario
         </button>
@@ -122,7 +122,7 @@ export default function PanelReservasPage() {
         />
       </div>
 
-      <PanelStatCard label="Fecha" tone="neutral" className="relative z-20 mt-4 inline-block min-w-[220px] overflow-visible">
+      <PanelStatCard label="Fecha" tone="neutral" className="relative z-20 mt-4 w-full max-w-md overflow-visible">
         <DatePicker
           id="panel-date"
           value={selectedDate}
@@ -136,8 +136,8 @@ export default function PanelReservasPage() {
           <p className="text-sm font-bold text-stone-700">Horarios bloqueados</p>
           <ul className="mt-2 space-y-2 text-sm">
             {blockedSlots.map((slot) => (
-              <li key={slot.id} className="flex items-center justify-between">
-                <span>
+              <li key={slot.id} className="flex items-start justify-between gap-3">
+                <span className="min-w-0 break-words">
                   {slot.startTime} – {slot.endTime}
                   {slot.reason ? ` · ${slot.reason}` : ""}
                 </span>
@@ -164,7 +164,60 @@ export default function PanelReservasPage() {
             No hay reservas para esta fecha.
           </p>
         ) : (
-          <table className="w-full text-left text-sm">
+          <>
+            <div className="space-y-3 p-3 md:hidden">
+              {dayReservations.map((r) => (
+                <article
+                  key={r.id}
+                  className="rounded-2xl border border-cactus-sand/70 bg-white p-4 shadow-sm"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-mono text-base font-bold text-cactus-charcoal">
+                        {r.time}
+                      </p>
+                      <p className="mt-1 truncate font-semibold">{r.customerName}</p>
+                      <p className="mt-0.5 font-mono text-xs text-stone-500">{r.phone}</p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <StatusBadge status={r.status} />
+                      <p className="mt-2 text-xs font-semibold text-stone-500">
+                        {r.partySize} pers.
+                      </p>
+                    </div>
+                  </div>
+                  {r.status !== "cancelled" &&
+                    r.status !== "completed" &&
+                    r.status !== "no_show" && (
+                      <div className="mt-3 flex flex-wrap gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => void handleStatusChange(r.id, "completed")}
+                          className="rounded-md bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-800"
+                        >
+                          Llegó
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void handleStatusChange(r.id, "no_show")}
+                          className="rounded-md bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-800"
+                        >
+                          No llegó
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void handleStatusChange(r.id, "cancelled")}
+                          className="rounded-md bg-stone-200 px-2.5 py-1 text-xs font-semibold text-stone-700"
+                        >
+                          Canceló
+                        </button>
+                      </div>
+                    )}
+                </article>
+              ))}
+            </div>
+            <div className="hidden overflow-x-auto md:block">
+              <table className="w-full min-w-[720px] text-left text-sm">
             <thead className="border-b border-stone-200 bg-stone-50">
               <tr>
                 <th className="px-4 py-3 font-semibold text-stone-600">Hora</th>
@@ -225,7 +278,9 @@ export default function PanelReservasPage() {
                 </tr>
               ))}
             </tbody>
-          </table>
+              </table>
+            </div>
+          </>
         )}
       </div>
 
@@ -238,7 +293,7 @@ export default function PanelReservasPage() {
         >
           <form
             onSubmit={handleBlock}
-            className="w-full max-w-md rounded-2xl border-2 border-cactus-forest/35 bg-gradient-to-br from-white via-white to-cactus-forest/8 p-6 shadow-premium ring-1 ring-cactus-forest/10"
+            className="max-h-[min(36rem,90dvh)] w-full max-w-md overflow-y-auto rounded-2xl border-2 border-cactus-forest/35 bg-gradient-to-br from-white via-white to-cactus-forest/8 p-6 shadow-premium ring-1 ring-cactus-forest/10"
           >
             <h2 id="block-slot-title" className="font-display text-xl font-bold text-cactus-charcoal">
               Bloquear horario

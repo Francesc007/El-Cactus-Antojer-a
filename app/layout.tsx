@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Bitter, Nunito_Sans } from "next/font/google";
 import { BUSINESS_INFO } from "@/lib/business-info";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -41,6 +41,12 @@ export const metadata: Metadata = {
     description: "Reserva tu mesa en El Cactus Antojería.",
   },
   robots: { index: true, follow: true },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({

@@ -90,11 +90,11 @@ export default function PanelDashboardPage() {
           Próximas reservas
         </h2>
 
-        <div className="premium-card mt-4 overflow-hidden">
+        <div className="premium-card mt-4 overflow-x-auto">
           {todayReservations.length === 0 ? (
             <p className="p-6 text-stone-500">No hay reservas para hoy.</p>
           ) : (
-            <table className="w-full text-left text-sm">
+            <table className="w-full min-w-[480px] text-left text-sm">
               <thead className="border-b border-stone-200 bg-stone-50">
                 <tr>
                   <th className="px-4 py-3 font-semibold text-stone-600">Hora</th>

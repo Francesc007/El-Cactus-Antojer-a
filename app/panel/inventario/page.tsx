@@ -115,7 +115,8 @@ export default function InventarioDashboardPage() {
             Descargar PDF
           </a>
         </div>
-        <table className="w-full text-left text-sm">
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[560px] text-left text-sm">
           <thead className="border-b border-cactus-sand/60 bg-stone-50/80">
             <tr>
               <th className="px-5 py-3 font-semibold text-stone-600">
@@ -156,6 +157,7 @@ export default function InventarioDashboardPage() {
             })}
           </tbody>
         </table>
+        </div>
       </PanelSectionCard>
     </div>
   );
