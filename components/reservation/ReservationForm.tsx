@@ -37,7 +37,6 @@ export function ReservationForm() {
     time: string;
     partySize: number;
     customerName: string;
-    whatsappUrl: string | null;
   } | null>(null);
 
   const partySize =
@@ -108,7 +107,6 @@ export function ReservationForm() {
         time,
         partySize,
         customerName: customerName.trim(),
-        whatsappUrl: data.notification.whatsappUrl,
       });
       setSubmitted(true);
     } catch (err) {
@@ -137,17 +135,7 @@ export function ReservationForm() {
             <strong>{formatDisplayDate(confirmationDetails.date)}</strong>{" "}
             a las <strong>{confirmationDetails.time}</strong>.
           </p>
-          {confirmationDetails.whatsappUrl && (
-            <a
-              href={confirmationDetails.whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-primary mt-6 inline-flex px-6 py-3 text-base"
-            >
-              Abrir WhatsApp
-            </a>
-          )}
-          <Link href="/" className="btn-secondary mt-4 inline-flex px-6 py-3 text-base">
+          <Link href="/" className="btn-primary mt-6 inline-flex px-6 py-3 text-base">
             Volver al inicio
           </Link>
         </div>

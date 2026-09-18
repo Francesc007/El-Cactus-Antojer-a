@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
@@ -121,9 +122,23 @@ function LoginForm() {
   if (hasSession) {
     return (
       <main className="mesh-warm flex min-h-screen items-center justify-center px-4">
-        <form onSubmit={handleUpdatePassword} className="premium-card w-full max-w-md space-y-4 p-6">
-          <p className="section-eyebrow">Personal</p>
-          <h1 className="section-title">Nueva contraseña</h1>
+        <form
+          onSubmit={handleUpdatePassword}
+          className="premium-card w-full max-w-md space-y-4 border-2 border-cactus-forest/40 p-6 ring-1 ring-cactus-lime/30"
+        >
+          <div className="flex flex-col items-center text-center">
+            <span className="mb-4 flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white p-1 shadow-sm ring-2 ring-cactus-forest/50">
+              <Image
+                src="/logo.png"
+                alt="El Cactus Antojería"
+                width={72}
+                height={72}
+                className="scale-110 object-contain"
+              />
+            </span>
+            <p className="section-eyebrow">Personal</p>
+            <h1 className="section-title">Nueva contraseña</h1>
+          </div>
           {error && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
           <div>
             <label htmlFor="new-password" className="text-sm font-semibold">
@@ -149,12 +164,26 @@ function LoginForm() {
 
   return (
     <main className="mesh-warm flex min-h-screen items-center justify-center px-4">
-      <form onSubmit={handleLogin} className="premium-card w-full max-w-md space-y-4 p-6">
-        <p className="section-eyebrow">Personal</p>
-        <h1 className="section-title">Entrar al panel</h1>
-        <p className="text-sm text-stone-600">
-          Acceso exclusivo para el equipo de El Cactus Antojería.
-        </p>
+      <form
+        onSubmit={handleLogin}
+        className="premium-card w-full max-w-md space-y-4 border-2 border-cactus-forest/40 p-6 ring-1 ring-cactus-lime/30"
+      >
+        <div className="flex flex-col items-center text-center">
+          <span className="mb-4 flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white p-1 shadow-sm ring-2 ring-cactus-forest/50">
+            <Image
+              src="/logo.png"
+              alt="El Cactus Antojería"
+              width={72}
+              height={72}
+              className="scale-110 object-contain"
+            />
+          </span>
+          <p className="section-eyebrow">Personal</p>
+          <h1 className="section-title">Entrar al panel</h1>
+          <p className="mt-2 text-sm text-stone-600">
+            Acceso exclusivo para el equipo de El Cactus Antojería.
+          </p>
+        </div>
         {error && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
         {info && <p className="rounded-xl bg-green-50 px-3 py-2 text-sm text-green-800">{info}</p>}
         <div>

@@ -10,9 +10,9 @@ export default function PanelLayout({
   return (
     <ReservationProvider>
       <InventoryProvider>
-        <div className="mesh-warm flex min-h-screen">
+        <div className="mesh-warm flex h-screen overflow-hidden">
           <PanelSidebar />
-          <main className="flex-1 overflow-auto p-6 sm:p-8">{children}</main>
+          <main className="min-h-0 flex-1 overflow-y-auto p-6 sm:p-8">{children}</main>
         </div>
       </InventoryProvider>
     </ReservationProvider>

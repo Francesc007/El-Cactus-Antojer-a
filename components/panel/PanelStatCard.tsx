@@ -19,6 +19,7 @@ const toneClasses: Record<PanelStatCardTone, string> = {
 
 type PanelStatCardProps = {
   label: string;
+  icon?: string;
   tone?: PanelStatCardTone;
   value?: ReactNode;
   children?: ReactNode;
@@ -27,6 +28,7 @@ type PanelStatCardProps = {
 
 export function PanelStatCard({
   label,
+  icon,
   tone = "forest",
   value,
   children,
@@ -36,7 +38,10 @@ export function PanelStatCard({
     <div
       className={`rounded-2xl border-2 p-5 shadow-premium backdrop-blur-sm transition duration-200 ease-out hover:-translate-y-1 hover:scale-[1.02] hover:shadow-lg sm:p-6 ${toneClasses[tone]} ${className}`}
     >
-      <p className="text-xs font-bold uppercase tracking-widest text-stone-500">{label}</p>
+      <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-stone-500">
+        {icon && <span className="text-base normal-case tracking-normal">{icon}</span>}
+        {label}
+      </p>
       {value !== undefined && (
         <p className="mt-2 font-display text-3xl font-bold sm:text-4xl">{value}</p>
       )}

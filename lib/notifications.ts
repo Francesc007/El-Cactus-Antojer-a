@@ -12,12 +12,15 @@ export type NotificationResult = {
 
 function reservationText(reservation: Reservation): string {
   return [
-    "Nueva reserva — El Cactus Antojería",
-    `Cliente: ${reservation.customerName}`,
-    `Teléfono: ${reservation.phone}`,
-    `Fecha: ${reservation.date}`,
-    `Hora: ${reservation.time}`,
-    `Personas: ${reservation.partySize}`,
+    "🌵 El Cactus Antojería 🌵",
+    "━━━━━━━━━━━━━━━━━━━━",
+    "Nueva reserva",
+    "",
+    `👤 Cliente: ${reservation.customerName}`,
+    `📱 Teléfono: ${reservation.phone}`,
+    `📅 Fecha: ${reservation.date}`,
+    `🕐 Hora: ${reservation.time}`,
+    `👥 Personas: ${reservation.partySize}`,
   ].join("\n");
 }
 

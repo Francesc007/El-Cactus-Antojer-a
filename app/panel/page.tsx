@@ -61,16 +61,19 @@ export default function PanelDashboardPage() {
       <div className="mt-8 grid gap-4 sm:grid-cols-3">
         <PanelStatCard
           label="Reservas hoy"
+          icon="📅"
           tone="forest"
           value={<span className="text-cactus-forest">{activeToday.length}</span>}
         />
         <PanelStatCard
           label="Comensales esperados"
+          icon="👥"
           tone="sunset"
           value={<span className="text-cactus-sunset">{totalGuests}</span>}
         />
         <PanelStatCard
           label="Hora pico"
+          icon="🕐"
           tone="lime"
           value={<span className="text-cactus-charcoal">{peak ? peak.time : "—"}</span>}
         >

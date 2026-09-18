@@ -35,20 +35,23 @@ export default function InventarioDashboardPage() {
       <div className="grid gap-4 sm:grid-cols-4">
         <PanelStatCard
           label="Productos"
+          icon="📦"
           tone="forest"
           value={<span className="text-cactus-forest">{products.length}</span>}
         />
         <PanelStatCard
           label="Stock bajo"
+          icon="🔻"
           tone="danger"
           value={<span className="text-red-600">{lowStockProducts.length}</span>}
         />
         <PanelStatCard
           label="En atención"
+          icon="⚠️"
           tone="warning"
           value={<span className="text-amber-600">{warningStockProducts.length}</span>}
         />
-        <PanelStatCard label="Acciones rápidas" tone="lime">
+        <PanelStatCard label="Acciones rápidas" icon="⚡" tone="lime">
           <div className="mt-3 flex flex-col gap-2 text-sm">
             <Link
               href="/panel/inventario/movimientos"
@@ -66,33 +69,37 @@ export default function InventarioDashboardPage() {
         </PanelStatCard>
       </div>
 
-      {warningStockProducts.length > 0 && (
-        <div className="premium-card mt-6 border-amber-200 bg-amber-50/60 p-4">
-          <p className="text-sm font-bold text-amber-800">
-            {warningStockProducts.length}{" "}
-            {warningStockProducts.length === 1
-              ? "producto se acerca"
-              : "productos se acercan"}{" "}
-            al límite
-          </p>
-          <p className="mt-1 text-sm text-amber-700/80">
-            {warningStockProducts.map((p) => p.name).join(", ")}
-          </p>
-        </div>
-      )}
+      {(warningStockProducts.length > 0 || lowStockProducts.length > 0) && (
+        <div className="mt-6 grid items-stretch gap-4 md:grid-cols-2">
+          {warningStockProducts.length > 0 && (
+            <div className="premium-card h-full border-amber-200 bg-amber-50/60 p-4">
+              <p className="text-sm font-bold text-amber-800">
+                {warningStockProducts.length}{" "}
+                {warningStockProducts.length === 1
+                  ? "producto se acerca"
+                  : "productos se acercan"}{" "}
+                al límite
+              </p>
+              <p className="mt-1 text-sm text-amber-700/80">
+                {warningStockProducts.map((p) => p.name).join(", ")}
+              </p>
+            </div>
+          )}
 
-      {lowStockProducts.length > 0 && (
-        <div className="premium-card mt-4 border-red-200 bg-red-50/50 p-4">
-          <p className="text-sm font-bold text-red-700">
-            {lowStockProducts.length}{" "}
-            {lowStockProducts.length === 1
-              ? "producto está"
-              : "productos están"}{" "}
-            por debajo del mínimo
-          </p>
-          <p className="mt-1 text-sm text-red-600/80">
-            {lowStockProducts.map((p) => p.name).join(", ")}
-          </p>
+          {lowStockProducts.length > 0 && (
+            <div className="premium-card h-full border-red-200 bg-red-50/50 p-4">
+              <p className="text-sm font-bold text-red-700">
+                {lowStockProducts.length}{" "}
+                {lowStockProducts.length === 1
+                  ? "producto está"
+                  : "productos están"}{" "}
+                por debajo del mínimo
+              </p>
+              <p className="mt-1 text-sm text-red-600/80">
+                {lowStockProducts.map((p) => p.name).join(", ")}
+              </p>
+            </div>
+          )}
         </div>
       )}
 

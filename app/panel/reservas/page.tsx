@@ -88,7 +88,7 @@ export default function PanelReservasPage() {
           <p className="section-eyebrow">Operación</p>
           <h1 className="section-title mt-1">Agenda de reservas</h1>
           <p className="mt-1 text-stone-600">
-            Gestiona llegadas, cancelaciones y no-shows del día.
+            Gestiona llegadas, cancelaciones y quienes no llegaron del día.
           </p>
         </div>
         <button
@@ -103,16 +103,19 @@ export default function PanelReservasPage() {
       <div className="mt-6 grid gap-4 sm:grid-cols-3">
         <PanelStatCard
           label="Reservas del día"
+          icon="📅"
           tone="forest"
           value={<span className="text-cactus-forest">{activeReservations.length}</span>}
         />
         <PanelStatCard
           label="Comensales"
+          icon="👥"
           tone="sunset"
           value={<span className="text-cactus-sunset">{totalGuests}</span>}
         />
         <PanelStatCard
           label="Pendientes"
+          icon="⏳"
           tone="lime"
           value={<span className="text-cactus-charcoal">{pendingReservations.length}</span>}
         />

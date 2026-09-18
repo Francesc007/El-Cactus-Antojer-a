@@ -15,21 +15,21 @@ export function PanelSidebar() {
   }
 
   return (
-    <aside className="flex w-64 shrink-0 flex-col gradient-forest text-white shadow-xl">
+    <aside className="flex h-screen w-64 shrink-0 flex-col gradient-forest text-white shadow-xl">
       <div className="border-b border-white/10 px-5 py-5">
         <Link href="/" className="flex items-center gap-3">
-          <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white p-0.5 shadow-sm ring-2 ring-cactus-lime/50">
+          <span className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white p-0.5 shadow-sm ring-2 ring-cactus-lime/50">
             <Image
               src="/logo.png"
               alt="El Cactus"
-              width={56}
-              height={56}
+              width={64}
+              height={64}
               className="h-full w-full scale-110 object-contain"
             />
           </span>
           <div>
             <p className="font-display text-sm font-bold text-white">
-              El Cactus
+              El Cactus Antojería
             </p>
             <p className="text-[10px] font-semibold uppercase tracking-widest text-cactus-lime/80">
               Panel del negocio
@@ -44,7 +44,7 @@ export function PanelSidebar() {
         <button
           type="button"
           onClick={() => void handleLogout()}
-          className="block text-xs font-semibold text-white/80 transition hover:text-white"
+          className="block text-sm font-semibold text-white/80 transition hover:text-white"
         >
           Cerrar sesión
         </button>
@@ -52,7 +52,7 @@ export function PanelSidebar() {
           href="/"
           className="text-xs text-cactus-lime/70 transition hover:text-cactus-lime"
         >
-          ← Volver al sitio público
+          Volver al Inicio
         </Link>
       </div>
     </aside>
