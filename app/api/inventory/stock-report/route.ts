@@ -1,5 +1,5 @@
 import React from "react";
-import { renderToBuffer } from "@react-pdf/renderer";
+import { renderToBuffer, type DocumentProps } from "@react-pdf/renderer";
 import { StockReportPdfDocument } from "@/components/panel/inventory/StockReportPdfDocument";
 import { requireStaff } from "@/lib/auth";
 import { BUSINESS_INFO } from "@/lib/business-info";
@@ -18,7 +18,10 @@ export async function GET() {
     const logoUrl = `${getPublicEnv().appUrl}/logo.png`;
 
     const buffer = await renderToBuffer(
-      React.createElement(StockReportPdfDocument, { data: report, logoUrl })
+      React.createElement(StockReportPdfDocument, {
+        data: report,
+        logoUrl,
+      }) as React.ReactElement<DocumentProps>
     );
 
     return new Response(new Uint8Array(buffer), {
