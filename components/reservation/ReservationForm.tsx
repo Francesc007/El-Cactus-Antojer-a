@@ -6,6 +6,10 @@ import { usePathname } from "next/navigation";
 import { privacyHref } from "@/lib/privacy-link";
 import { apiRequest } from "@/lib/api-client";
 import {
+  buildWhatsAppSendUrl,
+  formatReservationWhatsAppMessage,
+} from "@/lib/reservation-whatsapp-message";
+import {
   CLOSED_DAYS_LABEL,
 } from "@/lib/business-info";
 import {
@@ -86,7 +90,12 @@ export function ReservationForm() {
     try {
       const data = await apiRequest<{
         reservation: Reservation;
-        notification: { message: string; whatsappUrl: string | null };
+        notification: {
+          message: string;
+          whatsappMessage: string | null;
+          whatsappBusinessPhone: string | null;
+          whatsappUrl: string | null;
+        };
       }>("/api/reservations", {
         method: "POST",
         body: JSON.stringify({
@@ -99,7 +108,11 @@ export function ReservationForm() {
         }),
       });
 
-      if (data.notification.whatsappUrl) {
+      const businessPhone = data.notification.whatsappBusinessPhone;
+      if (businessPhone) {
+        const message = formatReservationWhatsAppMessage(data.reservation);
+        window.open(buildWhatsAppSendUrl(businessPhone, message), "_blank", "noopener,noreferrer");
+      } else if (data.notification.whatsappUrl) {
         window.open(data.notification.whatsappUrl, "_blank", "noopener,noreferrer");
       }
       setToastMessage(data.notification.message);

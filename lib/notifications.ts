@@ -1,42 +1,26 @@
 import { getServerEnv } from "@/lib/env";
 import { logEvent } from "@/lib/observability";
+import {
+  buildWhatsAppSendUrl,
+  formatReservationWhatsAppMessage,
+} from "@/lib/reservation-whatsapp-message";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import type { Product, Reservation } from "@/lib/types";
 
 export type NotificationResult = {
   message: string;
   customerName: string;
+  /** Texto plano UTF-8; el navegador debe armar la URL (evita emojis rotos en WhatsApp Web). */
+  whatsappMessage: string | null;
+  whatsappBusinessPhone: string | null;
   whatsappUrl: string | null;
   provider: "wa_me" | "whatsapp_cloud";
 };
 
-/** Emojis en escapes Unicode para que wa.me/WhatsApp no los corrompan en el build. */
-const WA = {
-  cactus: "\u{1F335}",
-  person: "\u{1F464}",
-  phone: "\u{1F4F1}",
-  calendar: "\u{1F4C5}",
-  clock: "\u{1F550}",
-  people: "\u{1F465}",
-} as const;
-
-function reservationText(reservation: Reservation): string {
-  return [
-    `${WA.cactus} El Cactus Antojería ${WA.cactus}`,
-    "━━━━━━━━━━━━━━━━━━━━",
-    "Nueva reserva",
-    "",
-    `${WA.person} Cliente: ${reservation.customerName}`,
-    `${WA.phone} Teléfono: ${reservation.phone}`,
-    `${WA.calendar} Fecha: ${reservation.date}`,
-    `${WA.clock} Hora: ${reservation.time}`,
-    `${WA.people} Personas: ${reservation.partySize}`,
-  ].join("\n");
-}
-
 export function buildReservationWhatsAppUrl(reservation: Reservation): string {
-  const number = getServerEnv().whatsappBusinessNumber.replace(/\D/g, "");
-  return `https://wa.me/${number}?text=${encodeURIComponent(reservationText(reservation))}`;
+  const env = getServerEnv();
+  const message = formatReservationWhatsAppMessage(reservation);
+  return buildWhatsAppSendUrl(env.whatsappBusinessNumber, message);
 }
 
 export async function recordNotificationAttempt(
@@ -103,12 +87,30 @@ export async function sendWhatsAppTemplate(
   return json;
 }
 
+function waMeNotificationResult(
+  reservation: Reservation,
+  whatsappMessage: string,
+  whatsappBusinessPhone: string,
+  whatsappUrl: string
+): NotificationResult {
+  return {
+    message: "Reserva guardada. Abre WhatsApp para avisar al negocio.",
+    customerName: reservation.customerName,
+    whatsappMessage,
+    whatsappBusinessPhone,
+    whatsappUrl,
+    provider: "wa_me",
+  };
+}
+
 export async function enqueueReservationNotification(
   reservation: Reservation
 ): Promise<NotificationResult> {
   const env = getServerEnv();
   const admin = createAdminSupabaseClient();
-  const whatsappUrl = buildReservationWhatsAppUrl(reservation);
+  const whatsappMessage = formatReservationWhatsAppMessage(reservation);
+  const whatsappBusinessPhone = env.whatsappBusinessNumber.replace(/\D/g, "");
+  const whatsappUrl = buildWhatsAppSendUrl(env.whatsappBusinessNumber, whatsappMessage);
   const payload = {
     reservationId: reservation.id,
     customerName: reservation.customerName,
@@ -116,6 +118,8 @@ export async function enqueueReservationNotification(
     date: reservation.date,
     time: reservation.time,
     partySize: reservation.partySize,
+    whatsappMessage,
+    whatsappBusinessPhone,
     whatsappUrl,
   };
 
@@ -136,12 +140,12 @@ export async function enqueueReservationNotification(
       message: "No se pudo guardar el outbox de notificación",
       code: "NOTIFY_OUTBOX",
     });
-    return {
-      message: "Reserva guardada. No se pudo registrar la notificación.",
-      customerName: reservation.customerName,
-      whatsappUrl,
-      provider: "wa_me",
-    };
+    return waMeNotificationResult(
+      reservation,
+      whatsappMessage,
+      whatsappBusinessPhone,
+      whatsappUrl
+    );
   }
 
   if (env.notificationProvider === "whatsapp_cloud") {
@@ -149,7 +153,7 @@ export async function enqueueReservationNotification(
       await sendWhatsAppTemplate(
         env.whatsappCloudOwnerPhone || env.whatsappBusinessNumber,
         env.whatsappCloudTemplateOwner,
-        [reservationText(reservation)]
+        [whatsappMessage]
       );
       await sendWhatsAppTemplate(
         `52${reservation.phone}`,
@@ -162,6 +166,8 @@ export async function enqueueReservationNotification(
       return {
         message: "Confirmación enviada por WhatsApp al cliente y al negocio.",
         customerName: reservation.customerName,
+        whatsappMessage: null,
+        whatsappBusinessPhone: null,
         whatsappUrl: null,
         provider: "whatsapp_cloud",
       };
@@ -176,12 +182,12 @@ export async function enqueueReservationNotification(
   }
 
   await recordNotificationAttempt(outbox.id, "wa_me", true, { whatsappUrl });
-  return {
-    message: "Reserva guardada. Abre WhatsApp para avisar al negocio.",
-    customerName: reservation.customerName,
-    whatsappUrl,
-    provider: "wa_me",
-  };
+  return waMeNotificationResult(
+    reservation,
+    whatsappMessage,
+    whatsappBusinessPhone,
+    whatsappUrl
+  );
 }
 
 export async function enqueueLowStockNotification(
