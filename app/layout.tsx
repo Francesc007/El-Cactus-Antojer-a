@@ -7,13 +7,13 @@ import "./globals.css";
 const displayFont = Bitter({
   subsets: ["latin"],
   variable: "--font-display",
-  weight: ["700", "800"],
+  display: "swap",
 });
 
 const sansFont = Nunito_Sans({
   subsets: ["latin"],
   variable: "--font-sans",
-  weight: ["400", "600", "700"],
+  display: "swap",
 });
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
