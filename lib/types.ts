@@ -128,3 +128,118 @@ export type ApiErrorBody = {
   error: string;
   code?: string;
 };
+
+export type LoyaltyStatus = "active" | "inactive";
+export type LoyaltyVisitSource = "scan" | "manual";
+export type BirthdaySendStatus = "sent" | "failed" | "pending" | "none";
+
+export type LoyaltyListItem = {
+  id: string;
+  fullName: string;
+  folio: string;
+  phone: string;
+  photoUrl: string | null;
+  currentVisits: number;
+  visitsPerReward: number;
+  status: LoyaltyStatus;
+  rewardAvailable: boolean;
+};
+
+export type LoyaltyPreview = {
+  id: string;
+  fullName: string;
+  folio: string;
+  photoUrl: string | null;
+  currentVisits: number;
+  visitsPerReward: number;
+  rewardDescription: string;
+  rewardAvailable: boolean;
+  visitsUntilReward: number;
+  tooSoon: boolean;
+  minHours: number;
+  status: LoyaltyStatus;
+};
+
+export type LoyaltyVisitRecord = {
+  id: string;
+  visitedAtLabel: string;
+  source: LoyaltyVisitSource;
+  voided: boolean;
+  voidReason: string | null;
+};
+
+export type LoyaltyRedemptionRecord = {
+  id: string;
+  redeemedAtLabel: string;
+  visitsConsumed: number;
+};
+
+export type LoyaltyMemberDetail = {
+  id: string;
+  fullName: string;
+  folio: string;
+  phone: string;
+  birthDay: number;
+  birthMonth: number;
+  birthYear: number | null;
+  photoUrl: string | null;
+  marketingConsent: boolean;
+  status: LoyaltyStatus;
+  currentVisits: number;
+  visitsPerReward: number;
+  rewardDescription: string;
+  rewardAvailable: boolean;
+  visitsUntilReward: number;
+  tooSoon: boolean;
+  minHours: number;
+  visits: LoyaltyVisitRecord[];
+  redemptions: LoyaltyRedemptionRecord[];
+};
+
+export type PublicLoyaltyCard = {
+  firstName: string;
+  folio: string;
+  photoUrl: string | null;
+  currentVisits: number;
+  visitsPerReward: number;
+  rewardDescription: string;
+  rewardAvailable: boolean;
+  visitsUntilReward: number;
+  cardUrl: string;
+};
+
+export type UpdateLoyaltyMemberInput = {
+  fullName?: string;
+  phone?: string;
+  birthDay?: number;
+  birthMonth?: number;
+  birthYear?: number | null;
+  status?: LoyaltyStatus;
+  marketingConsent?: boolean;
+};
+
+export type LoyaltySettingsView = {
+  visitsPerReward: number;
+  rewardDescription: string;
+  minHoursBetweenVisits: number;
+  birthdayMessage: string;
+};
+
+export type BirthdayEntry = {
+  id: string;
+  fullName: string;
+  firstName: string;
+  folio: string;
+  photoUrl: string | null;
+  whenLabel: string;
+  year: number;
+  sendStatus: BirthdaySendStatus;
+  whatsappUrl: string | null;
+};
+
+export type BirthdayBoard = {
+  provider: "wa_me" | "whatsapp_cloud";
+  today: BirthdayEntry[];
+  week: BirthdayEntry[];
+  upcoming: BirthdayEntry[];
+};

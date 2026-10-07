@@ -63,6 +63,54 @@ export function errorFromUnknown(error: unknown): AppError {
   if (message.includes("FORBIDDEN")) {
     return new AppError("No tienes permiso para esta acción.", "FORBIDDEN", 403);
   }
+  if (message.includes("PHONE_TAKEN")) {
+    return new AppError(
+      "Ese número ya tiene tarjeta. Pídela en el negocio.",
+      "PHONE_TAKEN",
+      409
+    );
+  }
+  if (message.includes("CONSENT_REQUIRED")) {
+    return new AppError(
+      "Para generar la tarjeta hay que aceptar los mensajes.",
+      "CONSENT_REQUIRED",
+      400
+    );
+  }
+  if (message.includes("MEMBER_NOT_FOUND") || message.includes("VISIT_NOT_FOUND")) {
+    return new AppError("No encontramos esa tarjeta.", "NOT_FOUND", 404);
+  }
+  if (message.includes("MEMBER_INACTIVE")) {
+    return new AppError("Esta tarjeta está inactiva.", "MEMBER_INACTIVE", 409);
+  }
+  if (message.includes("VISIT_TOO_SOON")) {
+    return new AppError(
+      "La última visita fue hace muy poco. Puedes registrarla de todos modos si el cliente ya volvió.",
+      "VISIT_TOO_SOON",
+      409
+    );
+  }
+  if (message.includes("REWARD_NOT_AVAILABLE")) {
+    return new AppError(
+      "Todavía no junta las visitas del premio.",
+      "REWARD_NOT_AVAILABLE",
+      409
+    );
+  }
+  if (message.includes("VISIT_ALREADY_VOID")) {
+    return new AppError("Esa visita ya estaba anulada.", "VISIT_ALREADY_VOID", 409);
+  }
+  if (message.includes("duplicate key") || message.includes("violates")) {
+    return new AppError("No se pudo guardar la información.", "CONFLICT", 409);
+  }
 
-  return new AppError(message, "INTERNAL", 500);
+  return new AppError(scrubPublicError(message), "INTERNAL", 500);
+}
+
+function scrubPublicError(message: string): string {
+  const scrubbed = message.replace(/\d{10,}/g, "[numero]");
+  if (scrubbed.length > 180) {
+    return "Error interno del servidor";
+  }
+  return scrubbed;
 }

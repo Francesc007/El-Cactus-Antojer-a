@@ -29,7 +29,7 @@ export function buildReservationWhatsAppUrl(reservation: Reservation): string {
   return `https://wa.me/${number}?text=${encodeURIComponent(reservationText(reservation))}`;
 }
 
-async function recordAttempt(
+export async function recordNotificationAttempt(
   outboxId: string,
   provider: string,
   success: boolean,
@@ -50,7 +50,11 @@ async function recordAttempt(
     .eq("id", outboxId);
 }
 
-async function sendWhatsAppCloud(to: string, template: string, body: string) {
+export async function sendWhatsAppTemplate(
+  to: string,
+  template: string,
+  parameters: string[]
+) {
   const env = getServerEnv();
   if (!env.whatsappCloudToken || !env.whatsappCloudPhoneNumberId || !template) {
     throw new Error("WhatsApp Cloud API no está configurada");
@@ -74,7 +78,7 @@ async function sendWhatsAppCloud(to: string, template: string, body: string) {
           components: [
             {
               type: "body",
-              parameters: [{ type: "text", text: body }],
+              parameters: parameters.map((text) => ({ type: "text", text })),
             },
           ],
         },
@@ -132,17 +136,19 @@ export async function enqueueReservationNotification(
 
   if (env.notificationProvider === "whatsapp_cloud") {
     try {
-      await sendWhatsAppCloud(
+      await sendWhatsAppTemplate(
         env.whatsappCloudOwnerPhone || env.whatsappBusinessNumber,
         env.whatsappCloudTemplateOwner,
-        reservationText(reservation)
+        [reservationText(reservation)]
       );
-      await sendWhatsAppCloud(
+      await sendWhatsAppTemplate(
         `52${reservation.phone}`,
         env.whatsappCloudTemplateCustomer,
-        `Tu reserva en El Cactus quedó confirmada el ${reservation.date} a las ${reservation.time}.`
+        [
+          `Tu reserva en El Cactus quedó confirmada el ${reservation.date} a las ${reservation.time}.`,
+        ]
       );
-      await recordAttempt(outbox.id, "whatsapp_cloud", true, { ok: true });
+      await recordNotificationAttempt(outbox.id, "whatsapp_cloud", true, { ok: true });
       return {
         message: "Confirmación enviada por WhatsApp al cliente y al negocio.",
         customerName: reservation.customerName,
@@ -151,7 +157,7 @@ export async function enqueueReservationNotification(
       };
     } catch (cloudError) {
       const details = cloudError instanceof Error ? cloudError.message : "cloud_error";
-      await recordAttempt(outbox.id, "whatsapp_cloud", false, null, details);
+      await recordNotificationAttempt(outbox.id, "whatsapp_cloud", false, null, details);
       logEvent("warn", {
         message: "Cloud API falló; se usa wa.me de respaldo",
         code: "NOTIFY_CLOUD_FALLBACK",
@@ -159,7 +165,7 @@ export async function enqueueReservationNotification(
     }
   }
 
-  await recordAttempt(outbox.id, "wa_me", true, { whatsappUrl });
+  await recordNotificationAttempt(outbox.id, "wa_me", true, { whatsappUrl });
   return {
     message: "Reserva guardada. Abre WhatsApp para avisar al negocio.",
     customerName: reservation.customerName,

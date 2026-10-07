@@ -27,3 +27,13 @@ export async function apiRequest<T>(input: RequestInfo, init?: RequestInit): Pro
   }
   return json as T;
 }
+
+export async function apiFormRequest<T>(url: string, form: FormData): Promise<T> {
+  const response = await fetch(url, { method: "POST", body: form });
+  const json = (await response.json()) as T | ApiErrorBody;
+  if (!response.ok) {
+    const body = json as ApiErrorBody;
+    throw new ApiRequestError(body.error ?? "Error de red", response.status, body.code);
+  }
+  return json as T;
+}

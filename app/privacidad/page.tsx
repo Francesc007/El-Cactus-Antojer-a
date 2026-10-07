@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { BUSINESS_INFO } from "@/lib/business-info";
+import { PRIVACY_NOTICE_TEXT, PRIVACY_NOTICE_VERSION } from "@/lib/loyalty";
 import { Header } from "@/components/landing/Header";
 import { Footer } from "@/components/landing/Footer";
 import { BackButton } from "@/components/ui/BackButton";
@@ -40,6 +41,10 @@ export default async function PrivacidadPage({
           <p>
             Al enviar una reserva, otorgas tu consentimiento para este
             tratamiento conforme a la LFPDPPP.
+          </p>
+          <p>{PRIVACY_NOTICE_TEXT}</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-stone-500">
+            Versión {PRIVACY_NOTICE_VERSION}
           </p>
         </div>
       </main>

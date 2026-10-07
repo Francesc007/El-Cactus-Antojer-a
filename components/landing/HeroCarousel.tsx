@@ -54,6 +54,12 @@ export function HeroCarousel() {
           <Link href="/reservar" className="btn-primary w-full">
             Reservar mesa
           </Link>
+          <Link
+            href="/tarjeta"
+            className="rounded-2xl border border-cactus-sun/80 bg-cactus-sun/20 px-8 py-3.5 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-cactus-sun/30"
+          >
+            Genera tu tarjeta VIP
+          </Link>
           <a
             href="#galeria"
             className="rounded-2xl border border-white/30 bg-white/10 px-8 py-3.5 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/20"

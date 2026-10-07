@@ -83,3 +83,34 @@ export const updateSettingsSchema = z.object({
   totalCapacity: z.coerce.number().int().min(1).max(500),
   defaultDurationMinutes: z.coerce.number().int().min(30).max(360),
 });
+
+export const loyaltySettingsSchema = z.object({
+  visitsPerReward: z.coerce.number().int().min(1).max(20),
+  rewardDescription: z.string().trim().min(2).max(120),
+  minHoursBetweenVisits: z.coerce.number().int().min(1).max(72),
+  birthdayMessage: z.string().trim().min(10).max(500),
+});
+
+export const loyaltyVisitSchema = z.object({
+  source: z.enum(["scan", "manual"]),
+  force: z.boolean().optional().default(false),
+});
+
+export const voidLoyaltyVisitSchema = z.object({
+  reason: z.string().trim().min(3, "Escribe el motivo de la anulación.").max(180),
+});
+
+export const updateLoyaltyMemberSchema = z.object({
+  fullName: z.string().trim().min(2).max(80).optional(),
+  phone: z.string().trim().min(10).max(20).optional(),
+  birthDay: z.coerce.number().int().min(1).max(31).optional(),
+  birthMonth: z.coerce.number().int().min(1).max(12).optional(),
+  birthYear: z.union([z.coerce.number().int().min(1900).max(2100), z.null()]).optional(),
+  status: z.enum(["active", "inactive"]).optional(),
+  marketingConsent: z.boolean().optional(),
+});
+
+export const markBirthdaySentSchema = z.object({
+  memberId: z.string().uuid(),
+  year: z.coerce.number().int().min(2000).max(2100),
+});

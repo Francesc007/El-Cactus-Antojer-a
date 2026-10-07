@@ -7,6 +7,7 @@ const NAV_ITEMS = [
   { href: "/panel", label: "Resumen", icon: "📊", exact: true },
   { href: "/panel/reservas", label: "Reservas", icon: "📅", exact: false },
   { href: "/panel/inventario", label: "Inventario", icon: "📦", exact: false },
+  { href: "/panel/clientes", label: "Clientes", icon: "🌵", exact: false },
 ];
 
 type PanelNavProps = {
@@ -24,7 +25,7 @@ export function PanelNav({ variant = "sidebar", onNavigate }: PanelNavProps) {
 
   if (variant === "tabs") {
     return (
-      <div className="grid grid-cols-3 gap-1">
+      <div className="grid grid-cols-4 gap-1">
         {NAV_ITEMS.map((item) => {
           const active = isActive(item.href, item.exact);
           return (

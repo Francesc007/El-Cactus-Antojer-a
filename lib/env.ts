@@ -35,7 +35,7 @@ export function getPublicEnv() {
 }
 
 export function getServerEnv() {
-  const notificationProvider =
+  const notificationProvider: "wa_me" | "whatsapp_cloud" =
     read("NOTIFICATION_PROVIDER") === "whatsapp_cloud" ? "whatsapp_cloud" : "wa_me";
 
   return {
@@ -47,7 +47,11 @@ export function getServerEnv() {
     whatsappCloudPhoneNumberId: read("WHATSAPP_CLOUD_PHONE_NUMBER_ID") ?? "",
     whatsappCloudTemplateCustomer: read("WHATSAPP_CLOUD_TEMPLATE_CUSTOMER") ?? "",
     whatsappCloudTemplateOwner: read("WHATSAPP_CLOUD_TEMPLATE_OWNER") ?? "",
+    whatsappCloudTemplateBirthday: read("WHATSAPP_CLOUD_TEMPLATE_BIRTHDAY") ?? "",
+    whatsappCloudTemplateBirthdayWeekly: read("WHATSAPP_CLOUD_TEMPLATE_BIRTHDAY_WEEKLY") ?? "",
     whatsappCloudOwnerPhone: read("WHATSAPP_CLOUD_OWNER_PHONE") ?? "",
+    businessTimezone: read("BUSINESS_TIMEZONE") ?? "America/Mexico_City",
+    cronSecret: read("CRON_SECRET") ?? "",
     sentryDsn: read("SENTRY_DSN") ?? "",
     whatsappWebhookVerifyToken: read("WHATSAPP_WEBHOOK_VERIFY_TOKEN") ?? "",
     reservationRateLimitMax: Number(read("RESERVATION_RATE_LIMIT_MAX") ?? "8"),

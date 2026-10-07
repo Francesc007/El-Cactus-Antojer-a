@@ -33,3 +33,9 @@ export async function requireStaff(): Promise<{
 
   return { profile, supabase };
 }
+
+export function assertOwner(profile: StaffProfile): void {
+  if (profile.role !== "owner") {
+    throw new AppError("Solo el dueño puede hacer esto.", "FORBIDDEN", 403);
+  }
+}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useReservations } from "@/context/ReservationContext";
 import { apiRequest } from "@/lib/api-client";
 import { getPeakHour } from "@/lib/availability";
@@ -15,6 +16,7 @@ export default function PanelDashboardPage() {
     useReservations();
   const today = todayStr();
   const [capacity, setCapacity] = useState<CapacityConfig>(DEFAULT_CAPACITY_CONFIG);
+  const [birthdayCount, setBirthdayCount] = useState<number | null>(null);
 
   const loadSettings = useCallback(async () => {
     const data = await apiRequest<{ capacity: CapacityConfig }>("/api/settings");
@@ -25,9 +27,15 @@ export default function PanelDashboardPage() {
     setSelectedDate(today);
   }, [setSelectedDate, today]);
 
+  const loadBirthdays = useCallback(async () => {
+    const data = await apiRequest<{ count: number }>("/api/loyalty/birthdays?summary=week");
+    setBirthdayCount(data.count);
+  }, []);
+
   useEffect(() => {
     void loadSettings().catch(() => undefined);
-  }, [loadSettings]);
+    void loadBirthdays().catch(() => setBirthdayCount(null));
+  }, [loadBirthdays, loadSettings]);
 
   const todayReservations = getReservationsForDate(today);
 
@@ -58,7 +66,7 @@ export default function PanelDashboardPage() {
         {formatDisplayDate(today, { includeYear: true })}
       </p>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-3">
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <PanelStatCard
           label="Reservas hoy"
           icon="📅"
@@ -83,6 +91,14 @@ export default function PanelDashboardPage() {
             </p>
           )}
         </PanelStatCard>
+        <Link href="/panel/clientes/cumpleanos" className="block">
+          <PanelStatCard
+            label="Cumpleaños de la semana"
+            icon="🎂"
+            tone="sunset"
+            value={<span className="text-cactus-sunset">{birthdayCount ?? "—"}</span>}
+          />
+        </Link>
       </div>
 
       <div className="mt-8">
