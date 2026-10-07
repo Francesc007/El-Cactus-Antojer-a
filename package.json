@@ -10,7 +10,10 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "demo:loyalty:seed": "npx tsx demo/loyalty-panel/run.ts seed",
+    "demo:loyalty:remove": "npx tsx demo/loyalty-panel/run.ts remove",
+    "demo:loyalty:settings": "npx tsx demo/loyalty-panel/run.ts settings"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.9.0",

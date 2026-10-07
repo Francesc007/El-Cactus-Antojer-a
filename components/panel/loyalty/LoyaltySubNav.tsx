@@ -3,44 +3,52 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const LINKS = [
-  { href: "/panel/clientes/escanear", label: "Escanear" },
-  { href: "/panel/clientes/cumpleanos", label: "Cumpleaños" },
-  { href: "/panel/clientes/configuracion", label: "Configuración" },
-];
+const SECTIONS = [
+  { href: "/panel/clientes", label: "Clientes", emoji: "👥" },
+  { href: "/panel/clientes/escanear", label: "Escanear", emoji: "📷" },
+  { href: "/panel/clientes/cumpleanos", label: "Cumpleaños", emoji: "🎂" },
+  { href: "/panel/clientes/configuracion", label: "Configuración", emoji: "⚙️" },
+] as const;
+
+function isActive(pathname: string, href: string): boolean {
+  if (href === "/panel/clientes") {
+    return (
+      pathname === "/panel/clientes" ||
+      (pathname.startsWith("/panel/clientes/") &&
+        !SECTIONS.slice(1).some((s) => pathname === s.href || pathname.startsWith(`${s.href}/`)))
+    );
+  }
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
 
 export function LoyaltySubNav() {
   const pathname = usePathname();
-  const clientesActive =
-    pathname === "/panel/clientes" ||
-    (pathname.startsWith("/panel/clientes/") &&
-      !LINKS.some((link) => pathname === link.href || pathname.startsWith(`${link.href}/`)));
 
   return (
-    <nav className="flex gap-2 overflow-x-auto overscroll-x-contain border-b border-cactus-sand/60 pb-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-      <Link
-        href="/panel/clientes"
-        className={`shrink-0 rounded-xl px-4 py-2 text-sm font-semibold transition ${
-          clientesActive
-            ? "bg-cactus-forest text-white shadow-glow-green"
-            : "bg-white text-stone-600 ring-1 ring-cactus-sand hover:text-cactus-forest"
-        }`}
-      >
-        Clientes
-      </Link>
-      {LINKS.map((link) => {
-        const active = pathname === link.href || pathname.startsWith(`${link.href}/`);
+    <nav
+      className="grid grid-cols-2 gap-2 sm:grid-cols-4"
+      aria-label="Secciones de tarjeta VIP"
+    >
+      {SECTIONS.map((section) => {
+        const active = isActive(pathname, section.href);
         return (
           <Link
-            key={link.href}
-            href={link.href}
-            className={`shrink-0 rounded-xl px-4 py-2 text-sm font-semibold transition ${
+            key={section.href}
+            href={section.href}
+            className={`rounded-2xl border-2 p-4 text-center shadow-premium backdrop-blur-sm transition duration-200 ease-out sm:p-5 lg:hover:-translate-y-0.5 lg:hover:shadow-lg ${
               active
-                ? "bg-cactus-forest text-white shadow-glow-green"
-                : "bg-white text-stone-600 ring-1 ring-cactus-sand hover:text-cactus-forest"
+                ? "border-cactus-forest/35 bg-gradient-to-br from-cactus-forest/20 via-cactus-lime/10 to-white ring-1 ring-cactus-forest/15"
+                : "border-cactus-charcoal/15 bg-gradient-to-br from-stone-200/35 via-cactus-cream/40 to-white ring-1 ring-stone-200/70"
             }`}
           >
-            {link.label}
+            <span className="block text-2xl sm:text-3xl" aria-hidden>
+              {section.emoji}
+            </span>
+            <span
+              className={`mt-2 block text-sm font-bold ${active ? "text-cactus-forest" : "text-stone-600"}`}
+            >
+              {section.label}
+            </span>
           </Link>
         );
       })}

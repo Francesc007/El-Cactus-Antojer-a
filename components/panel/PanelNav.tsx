@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const NAV_ITEMS = [
-  { href: "/panel", label: "Resumen", icon: "📊", exact: true },
+  { href: "/panel", label: "Panel", icon: "📊", exact: true },
   { href: "/panel/reservas", label: "Reservas", icon: "📅", exact: false },
   { href: "/panel/inventario", label: "Inventario", icon: "📦", exact: false },
   { href: "/panel/clientes", label: "Clientes", icon: "🌵", exact: false },

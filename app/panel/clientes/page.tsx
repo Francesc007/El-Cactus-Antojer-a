@@ -76,20 +76,34 @@ export default function ClientesPage() {
         <p className="mt-6 text-stone-500">No hay clientes con esa búsqueda.</p>
       )}
 
-      <ul className="mt-4 space-y-3">
+      <ul className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
         {members.map((member) => (
-          <li key={member.id}>
-            <Link href={`/panel/clientes/${member.id}`} className="premium-card flex items-center gap-3 p-3">
-              <LoyaltyPhoto src={member.photoUrl} name={member.fullName} progress={member.currentVisits} />
-              <div className="min-w-0">
-                <p className="truncate font-semibold text-cactus-charcoal">{member.fullName}</p>
-                <p className="font-mono text-xs text-stone-500">{member.folio}</p>
-                <p className="text-sm text-stone-600">{displayPhone(member.phone)}</p>
-                <p className="text-xs text-stone-500">
-                  {member.status === "inactive" ? "Inactiva · " : ""}
-                  {member.rewardAvailable
-                    ? "Premio disponible"
-                    : `${member.currentVisits} de ${member.visitsPerReward}`}
+          <li key={member.id} className="min-w-0">
+            <Link
+              href={`/panel/clientes/${member.id}`}
+              className="premium-card flex h-full flex-col items-center gap-2 p-3 text-center transition hover:ring-2 hover:ring-cactus-lime/40"
+            >
+              <LoyaltyPhoto
+                src={null}
+                name={member.fullName}
+                progress={member.currentVisits}
+                size="xs"
+                initialOnly
+              />
+              <div className="min-w-0 w-full">
+                <p className="truncate text-sm font-semibold text-cactus-charcoal">{member.fullName}</p>
+                <p className="mt-0.5 font-mono text-[11px] font-bold tracking-wide text-stone-500">
+                  {member.folio}
+                </p>
+                <p className="mt-1 truncate text-xs text-stone-600">{displayPhone(member.phone)}</p>
+                <p className="mt-1.5 text-[11px] font-semibold leading-snug text-cactus-forest">
+                  {member.status === "inactive" ? (
+                    <span className="text-stone-400">Inactiva</span>
+                  ) : member.rewardAvailable ? (
+                    "Premio listo"
+                  ) : (
+                    `${member.currentVisits}/${member.visitsPerReward} visitas`
+                  )}
                 </p>
               </div>
             </Link>

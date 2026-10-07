@@ -856,6 +856,7 @@ export async function getBirthdayBoard(now = new Date()): Promise<BirthdayBoard>
       whenLabel: formatSpanishDay(match.observed),
       year: match.observed.year,
       sendStatus: statusByKey.get(`${match.member.id}:${match.observed.year}`) ?? "none",
+      messagePreview: composeBirthdayMessage(settings.birthday_message, match.member.full_name),
       whatsappUrl:
         env.notificationProvider === "wa_me"
           ? birthdayWaMeUrl(

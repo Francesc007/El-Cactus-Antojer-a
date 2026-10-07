@@ -235,6 +235,7 @@ export type BirthdayEntry = {
   year: number;
   sendStatus: BirthdaySendStatus;
   whatsappUrl: string | null;
+  messagePreview: string;
 };
 
 export type BirthdayBoard = {

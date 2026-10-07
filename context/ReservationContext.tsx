@@ -25,6 +25,9 @@ type ReservationContextValue = {
 
 const ReservationContext = createContext<ReservationContextValue | null>(null);
 
+/** Respaldo si Realtime no avisa; evita consultar la API cada pocos segundos. */
+const PANEL_RESERVATIONS_POLL_MS = 60 * 60 * 1000;
+
 export function ReservationProvider({ children }: { children: ReactNode }) {
   const [selectedDate, setSelectedDate] = useState(todayStr);
   const [reservations, setReservations] = useState<Reservation[]>([]);
@@ -63,7 +66,7 @@ export function ReservationProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const intervalId = window.setInterval(() => {
       void refreshRef.current({ silent: true });
-    }, 4000);
+    }, PANEL_RESERVATIONS_POLL_MS);
 
     if (!isSupabaseConfigured()) {
       return () => window.clearInterval(intervalId);

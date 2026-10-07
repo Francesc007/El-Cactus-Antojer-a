@@ -252,6 +252,10 @@ export function isVisitTooSoon(
   return elapsedHours < minHours;
 }
 
+export function isDemoLoyaltyMember(folio: string, fullName: string): boolean {
+  return fullName.startsWith("Demo ·") || /^C-900\d$/.test(folio);
+}
+
 export function composeBirthdayMessage(template: string, fullName: string): string {
   const name = firstName(fullName);
   if (template.includes("{{1}}")) {

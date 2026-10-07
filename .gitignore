@@ -37,3 +37,6 @@ supabase/.temp/
 
 # typescript
 *.tsbuildinfo
+
+# demo tarjeta VIP (generado al sembrar)
+/demo/loyalty-panel/manifest.json

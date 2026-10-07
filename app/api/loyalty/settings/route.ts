@@ -7,9 +7,9 @@ import { loyaltySettingsSchema } from "@/lib/validation/schemas";
 export async function GET() {
   try {
     const { profile } = await requireStaff();
-    assertOwner(profile);
     const settings = await getLoyaltySettings();
-    return jsonOk({ settings, provider: getServerEnv().notificationProvider });
+    const canEdit = profile.role === "owner";
+    return jsonOk({ settings, provider: getServerEnv().notificationProvider, canEdit });
   } catch (error) {
     return jsonError(error);
   }
