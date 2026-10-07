@@ -10,17 +10,27 @@ export type NotificationResult = {
   provider: "wa_me" | "whatsapp_cloud";
 };
 
+/** Emojis en escapes Unicode para que wa.me/WhatsApp no los corrompan en el build. */
+const WA = {
+  cactus: "\u{1F335}",
+  person: "\u{1F464}",
+  phone: "\u{1F4F1}",
+  calendar: "\u{1F4C5}",
+  clock: "\u{1F550}",
+  people: "\u{1F465}",
+} as const;
+
 function reservationText(reservation: Reservation): string {
   return [
-    "🌵 El Cactus Antojería 🌵",
+    `${WA.cactus} El Cactus Antojería ${WA.cactus}`,
     "━━━━━━━━━━━━━━━━━━━━",
     "Nueva reserva",
     "",
-    `👤 Cliente: ${reservation.customerName}`,
-    `📱 Teléfono: ${reservation.phone}`,
-    `📅 Fecha: ${reservation.date}`,
-    `🕐 Hora: ${reservation.time}`,
-    `👥 Personas: ${reservation.partySize}`,
+    `${WA.person} Cliente: ${reservation.customerName}`,
+    `${WA.phone} Teléfono: ${reservation.phone}`,
+    `${WA.calendar} Fecha: ${reservation.date}`,
+    `${WA.clock} Hora: ${reservation.time}`,
+    `${WA.people} Personas: ${reservation.partySize}`,
   ].join("\n");
 }
 
