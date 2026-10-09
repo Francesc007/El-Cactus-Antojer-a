@@ -10,7 +10,7 @@ describe("tarjeta VIP compartida", () => {
     const url = "https://elcactus.mx/tarjeta/abc123";
     const message = formatLoyaltyCardWhatsAppMessage("María", url);
     expect(message).toContain("María");
-    expect(message).toContain(url);
+    expect(message).toContain(`${url}?v=`);
     expect(message).toContain("\u{1F335}");
     expect(message).not.toMatch(/sello|visita/i);
   });

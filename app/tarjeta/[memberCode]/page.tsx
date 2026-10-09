@@ -8,10 +8,28 @@ import { getPublicLoyaltyCard } from "@/lib/services/loyalty";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: { absolute: "Tarjeta VIP" },
-  robots: { index: false, follow: false },
+type CardPageProps = {
+  params: Promise<{ memberCode: string }>;
+  searchParams: Promise<{ v?: string | string[] }>;
 };
+
+export async function generateMetadata({ params, searchParams }: CardPageProps): Promise<Metadata> {
+  const { memberCode } = await params;
+  const query = await searchParams;
+  const raw = Array.isArray(query.v) ? query.v[0] : query.v;
+  const token = raw && /^[a-z0-9]{4,16}$/i.test(raw) ? raw : "";
+  const slug = encodeURIComponent(decodeURIComponent(memberCode));
+  return {
+    title: { absolute: "Tarjeta VIP" },
+    robots: { index: false, follow: false },
+    openGraph: {
+      title: "El Cactus Antojería",
+      description: "Reserva tu mesa en El Cactus Antojería, Tepeji del Río.",
+      url: `/tarjeta/${slug}${token ? `?v=${token}` : ""}`,
+      images: ["/cactus%204.jpeg"],
+    },
+  };
+}
 
 export default async function LoyaltyCardPage({
   params,

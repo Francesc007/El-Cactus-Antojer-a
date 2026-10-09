@@ -6,6 +6,26 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
       {
+        userAgent: "facebookexternalhit",
+        allow: "/",
+        disallow: ["/panel", "/login", "/api"],
+      },
+      {
+        userAgent: "Facebot",
+        allow: "/",
+        disallow: ["/panel", "/login", "/api"],
+      },
+      {
+        userAgent: "WhatsApp",
+        allow: "/",
+        disallow: ["/panel", "/login", "/api"],
+      },
+      {
+        userAgent: "meta-externalagent",
+        allow: "/",
+        disallow: ["/panel", "/login", "/api"],
+      },
+      {
         userAgent: "*",
         allow: "/",
         disallow: ["/panel", "/login", "/api", "/tarjeta/"],

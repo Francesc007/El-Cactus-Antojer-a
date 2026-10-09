@@ -5,8 +5,22 @@ export function formatLoyaltyCardWhatsAppMessage(firstName: string, cardUrl: str
     `${cactus} Tu tarjeta VIP de El Cactus ${cactus}`,
     "",
     `Hola ${firstName}, guarda este enlace para abrir tu tarjeta y mostrar el código en el negocio:`,
-    cardUrl,
+    whatsAppPreviewUrl(cardUrl),
   ].join("\n");
+}
+
+/**
+ * WhatsApp no vuelve a poner la foto si el enlace es idéntico al anterior.
+ * Un dato corto y distinto en cada envío hace que arme otra vez la vista previa.
+ */
+function whatsAppPreviewUrl(cardUrl: string): string {
+  try {
+    const url = new URL(cardUrl);
+    url.searchParams.set("v", Date.now().toString(36));
+    return url.toString();
+  } catch {
+    return cardUrl;
+  }
 }
 
 export function loyaltyCardImageFileName(folio: string): string {
