@@ -177,19 +177,17 @@ export default function ClienteDetailPage() {
   return (
     <div className="space-y-4">
       <section className="premium-card p-4">
-        <div className="flex items-center gap-3">
-          <LoyaltyPhoto src={member.photoUrl} name={member.fullName} progress={member.currentVisits} size="lg" />
-          <div>
-            <h1 className="font-display text-2xl font-bold text-cactus-charcoal">{member.fullName}</h1>
-            <p className="font-mono text-sm text-stone-500">Folio {member.folio}</p>
-            <p className="text-sm text-stone-600">
-              {member.status === "inactive" ? "Inactiva · " : ""}
-              {member.currentVisits} de {member.visitsPerReward}
-            </p>
+        <div className="flex flex-col items-center text-center">
+          <LoyaltyPhoto src={member.photoUrl} name={member.fullName} size="lg" />
+          <h1 className="mt-3 font-display text-2xl font-bold text-cactus-charcoal">{member.fullName}</h1>
+          <p className="mt-1 font-mono text-sm text-stone-500">Folio {member.folio}</p>
+          <p className="mt-2 text-sm font-semibold text-cactus-forest">
+            {member.status === "inactive" ? "Inactiva · " : ""}
+            {member.currentVisits} de {member.visitsPerReward} visitas
+          </p>
+          <div className="mt-4 w-full min-w-0 px-1">
+            <StampRow current={member.currentVisits} total={member.visitsPerReward} />
           </div>
-        </div>
-        <div className="mt-4">
-          <StampRow current={member.currentVisits} total={member.visitsPerReward} />
         </div>
         <button
           type="button"

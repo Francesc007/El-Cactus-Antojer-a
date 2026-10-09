@@ -9,21 +9,27 @@ export function StampRow({ current, total }: StampRowProps) {
 
   return (
     <div
-      className="flex flex-wrap justify-center gap-2"
+      className="mx-auto w-full max-w-[17rem]"
+      role="group"
       aria-label={`${filled} de ${total} visitas`}
     >
-      {stamps.map((done, index) => (
-        <span
-          key={index}
-          className={`flex h-9 w-9 items-center justify-center rounded-full border-2 text-xs font-bold ${
-            done
-              ? "border-cactus-forest bg-cactus-forest text-white"
-              : "border-stone-300 bg-white text-stone-300"
-          }`}
-        >
-          {done ? "✓" : index + 1}
-        </span>
-      ))}
+      <div
+        className="grid w-full gap-1.5 sm:gap-2"
+        style={{ gridTemplateColumns: `repeat(${total}, minmax(0, 1fr))` }}
+      >
+        {stamps.map((done, index) => (
+          <span
+            key={index}
+            className={`flex aspect-square w-full max-h-9 items-center justify-center rounded-full border-2 text-[11px] font-bold sm:text-xs ${
+              done
+                ? "border-cactus-forest bg-cactus-forest text-white"
+                : "border-stone-300 bg-white text-stone-400"
+            }`}
+          >
+            {done ? "✓" : index + 1}
+          </span>
+        ))}
+      </div>
     </div>
   );
 }
