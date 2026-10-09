@@ -22,6 +22,7 @@ import {
   normalizeFullName,
   normalizeLoyaltyPhone,
   normalizeMemberCode,
+  parseLoyaltyCardSlug,
   PRIVACY_NOTICE_VERSION,
   upcomingDates,
   weekDatesMondayToSunday,
@@ -239,7 +240,7 @@ export async function createLoyaltyMember(input: {
   birthYear: number | null;
   photo: Uint8Array;
   consent: boolean;
-}): Promise<{ memberCode: string }> {
+}): Promise<{ folio: string }> {
   if (!input.consent) {
     throw new AppError(
       "Para generar la tarjeta hay que aceptar los mensajes.",
@@ -300,7 +301,7 @@ export async function createLoyaltyMember(input: {
       privacy_notice_version: PRIVACY_NOTICE_VERSION,
       status: "active",
     })
-    .select("member_code")
+    .select("folio")
     .single();
 
   if (error || !data) {
@@ -323,11 +324,11 @@ export async function createLoyaltyMember(input: {
     throw new AppError("No se pudo crear la tarjeta.", "LOYALTY_CREATE", 500);
   }
 
-  const memberCode = normalizeMemberCode(String((data as { member_code: string }).member_code));
-  if (!memberCode) {
+  const folio = String((data as { folio: string }).folio ?? "").trim();
+  if (!folio) {
     throw new AppError("No se pudo crear la tarjeta.", "LOYALTY_CREATE", 500);
   }
-  return { memberCode };
+  return { folio };
 }
 
 export async function searchLoyaltyMembers(query: string): Promise<LoyaltyListItem[]> {
@@ -378,7 +379,19 @@ export async function searchLoyaltyMembers(query: string): Promise<LoyaltyListIt
   });
 }
 
-async function loadMemberBy(column: "id" | "member_code" | "phone", value: string): Promise<MemberRow | null> {
+async function loadMemberByCardSlug(slug: string): Promise<MemberRow | null> {
+  const parsed = parseLoyaltyCardSlug(slug);
+  if (!parsed) {
+    return null;
+  }
+  const memberCode = normalizeMemberCode(parsed);
+  if (memberCode) {
+    return loadMemberBy("member_code", memberCode);
+  }
+  return loadMemberBy("folio", parsed);
+}
+
+async function loadMemberBy(column: "id" | "member_code" | "phone" | "folio", value: string): Promise<MemberRow | null> {
   const admin = createAdminSupabaseClient();
   const { data, error } = await admin
     .from("loyalty_members")
@@ -420,11 +433,10 @@ function toPreview(
 }
 
 export async function getLoyaltyPreviewByCode(code: string, now = new Date()): Promise<LoyaltyPreview> {
-  const memberCode = normalizeMemberCode(code);
-  if (!memberCode) {
-    throw new AppError("Ese código no es una tarjeta VIP.", "VALIDATION", 400);
+  if (!parseLoyaltyCardSlug(code)) {
+    throw new AppError("Ese enlace no corresponde a una tarjeta VIP.", "VALIDATION", 400);
   }
-  const member = await loadMemberBy("member_code", memberCode);
+  const member = await loadMemberByCardSlug(code);
   if (!member) {
     throw new AppError("No encontramos esa tarjeta.", "NOT_FOUND", 404);
   }
@@ -457,11 +469,10 @@ async function buildPreview(member: MemberRow, now: Date): Promise<LoyaltyPrevie
 }
 
 export async function getPublicLoyaltyCard(code: string): Promise<PublicLoyaltyCard | null> {
-  const memberCode = normalizeMemberCode(code);
-  if (!memberCode) {
+  if (!parseLoyaltyCardSlug(code)) {
     return null;
   }
-  const member = await loadMemberBy("member_code", memberCode);
+  const member = await loadMemberByCardSlug(code);
   if (!member) {
     return null;
   }
@@ -482,18 +493,17 @@ export async function getPublicLoyaltyCard(code: string): Promise<PublicLoyaltyC
     rewardDescription: settings.reward_description,
     rewardAvailable: isRewardAvailable(current, settings.visits_per_reward),
     visitsUntilReward: visitsUntilReward(current, settings.visits_per_reward),
-    cardUrl: loyaltyCardUrl(getServerEnv().appUrl, member.member_code),
+    cardUrl: loyaltyCardUrl(getServerEnv().appUrl, member.folio),
   };
 }
 
 export async function readPublicLoyaltyPhoto(
   code: string
 ): Promise<{ bytes: Uint8Array; mime: string } | null> {
-  const memberCode = normalizeMemberCode(code);
-  if (!memberCode) {
+  if (!parseLoyaltyCardSlug(code)) {
     return null;
   }
-  const member = await loadMemberBy("member_code", memberCode);
+  const member = await loadMemberByCardSlug(code);
   if (!member) {
     return null;
   }
@@ -561,7 +571,7 @@ export async function getLoyaltyMemberDetail(id: string, now = new Date()): Prom
     fullName: member.full_name,
     folio: member.folio,
     phone: member.phone,
-    cardUrl: loyaltyCardUrl(getServerEnv().appUrl, member.member_code),
+    cardUrl: loyaltyCardUrl(getServerEnv().appUrl, member.folio),
     birthDay: member.birth_day,
     birthMonth: member.birth_month,
     birthYear: member.birth_year,

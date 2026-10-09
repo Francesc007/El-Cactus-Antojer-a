@@ -19,7 +19,7 @@ export default async function LoyaltyCardPage({
   params: Promise<{ memberCode: string }>;
 }) {
   const { memberCode } = await params;
-  const card = await getPublicLoyaltyCard(memberCode);
+  const card = await getPublicLoyaltyCard(decodeURIComponent(memberCode));
   if (!card) {
     notFound();
   }

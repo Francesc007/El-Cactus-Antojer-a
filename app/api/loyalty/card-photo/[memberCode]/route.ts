@@ -5,7 +5,7 @@ export async function GET(
   context: { params: Promise<{ memberCode: string }> }
 ) {
   const { memberCode } = await context.params;
-  const photo = await readPublicLoyaltyPhoto(memberCode);
+  const photo = await readPublicLoyaltyPhoto(decodeURIComponent(memberCode));
   if (!photo) {
     return new Response(null, { status: 404 });
   }

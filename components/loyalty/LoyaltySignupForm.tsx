@@ -60,8 +60,8 @@ export function LoyaltySignupForm() {
     form.set("photo", photo);
     form.set("marketingConsent", "yes");
     try {
-      const data = await apiFormRequest<{ memberCode: string }>("/api/loyalty/members", form);
-      router.push(`/tarjeta/${data.memberCode}`);
+      const data = await apiFormRequest<{ folio: string }>("/api/loyalty/members", form);
+      router.push(`/tarjeta/${encodeURIComponent(data.folio)}`);
     } catch (err) {
       setError(err instanceof ApiRequestError ? err.message : "No se pudo crear la tarjeta.");
       setSubmitting(false);

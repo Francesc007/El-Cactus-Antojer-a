@@ -10,6 +10,7 @@ import {
   isRewardAvailable,
   isVisitTooSoon,
   isoWeekKey,
+  loyaltyCardUrl,
   memberCodeFromScan,
   normalizeLoyaltyPhone,
   upcomingDates,
@@ -107,13 +108,22 @@ describe("horas mínimas entre visitas", () => {
   });
 });
 
+describe("enlace público de tarjeta", () => {
+  it("usa el folio en la URL", () => {
+    expect(loyaltyCardUrl("https://www.elcactusantojeria.com", "C-0042")).toBe(
+      "https://www.elcactusantojeria.com/tarjeta/C-0042"
+    );
+  });
+});
+
 describe("código del QR", () => {
   const code = "ab".repeat(16);
 
-  it("acepta la URL de la tarjeta y rechaza el folio", () => {
+  it("acepta la URL con código largo o folio", () => {
     expect(memberCodeFromScan(`https://elcactus.mx/tarjeta/${code}`)).toBe(code);
     expect(memberCodeFromScan(`https://elcactus.mx/tarjeta/${code}?nueva=1`)).toBe(code);
-    expect(memberCodeFromScan("C-0001")).toBeNull();
+    expect(memberCodeFromScan("https://elcactus.mx/tarjeta/C-0042")).toBe("C-0042");
+    expect(memberCodeFromScan("C-0001")).toBe("C-0001");
     expect(memberCodeFromScan("https://elcactus.mx/")).toBeNull();
   });
 });

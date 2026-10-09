@@ -90,7 +90,7 @@ export function LoyaltyScanner() {
             handled = true;
             setSource("scan");
             setScanning(false);
-            void loadPreview(`/api/loyalty/preview?code=${code}`);
+            void loadPreview(`/api/loyalty/preview?code=${encodeURIComponent(code)}`);
           },
           () => undefined
         );

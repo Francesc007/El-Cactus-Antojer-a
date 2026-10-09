@@ -16,6 +16,10 @@ type LoyaltyCardActionsProps = {
   qrDataUrl: string | null;
 };
 
+/** Amarillo de marca (tailwind cactus.sun / cactus.sunset). */
+const BRAND_SUN = "#FED500";
+const BRAND_SUNSET = "#F7941D";
+
 const STEPS = {
   iphone: [
     { icon: "⬆️", text: "Toca Compartir (el cuadrado con la flecha hacia arriba)." },
@@ -135,7 +139,7 @@ function photoUrlForCard(cardUrl: string): string | null {
   if (!code) {
     return null;
   }
-  return `/api/loyalty/card-photo/${code}`;
+  return `/api/loyalty/card-photo/${encodeURIComponent(code)}`;
 }
 
 async function renderCardPng(input: {
@@ -161,7 +165,8 @@ async function renderCardPng(input: {
 
   const logo = await loadImage("/logo.png");
   const logoSize = 132;
-  ctx.drawImage(logo, (width - logoSize) / 2, 48, logoSize, logoSize);
+  const logoX = (width - logoSize) / 2;
+  drawBrandedLogo(ctx, logo, logoX, 48, logoSize);
 
   ctx.textAlign = "center";
   ctx.fillStyle = "#4BA747";
@@ -199,6 +204,32 @@ async function renderCardPng(input: {
     throw new Error("png");
   }
   return blob;
+}
+
+/** Borde amarillo muy fino detrás del PNG para que no se vea el halo blanco del logo. */
+function drawBrandedLogo(
+  ctx: CanvasRenderingContext2D,
+  logo: HTMLImageElement,
+  x: number,
+  y: number,
+  size: number
+) {
+  const radius = 14;
+  const edge = 3;
+
+  ctx.save();
+  roundRect(ctx, x, y, size, size, radius);
+  ctx.clip();
+
+  const grad = ctx.createLinearGradient(x, y, x + size, y + size);
+  grad.addColorStop(0, BRAND_SUN);
+  grad.addColorStop(1, BRAND_SUNSET);
+  ctx.fillStyle = grad;
+  ctx.fillRect(x, y, size, size);
+
+  const pad = edge + 1;
+  ctx.drawImage(logo, x + pad, y + pad, size - pad * 2, size - pad * 2);
+  ctx.restore();
 }
 
 function drawPortrait(

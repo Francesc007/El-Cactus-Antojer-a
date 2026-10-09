@@ -120,7 +120,7 @@ export async function seedLoyaltyDemo(): Promise<void> {
   console.log("Demo de clientes VIP creado.");
   console.log(`Tarjetas públicas (QR): /tarjeta/<código>`);
   for (const spec of specs) {
-    console.log(`  ${spec.folio} ${spec.fullName} → /tarjeta/${spec.memberCode}`);
+    console.log(`  ${spec.folio} ${spec.fullName} → /tarjeta/${spec.folio}`);
   }
   console.log(`Para quitar todo: npm run demo:loyalty:remove`);
 }

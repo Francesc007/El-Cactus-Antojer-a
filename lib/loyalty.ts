@@ -279,9 +279,20 @@ export function birthdayWaMeUrl(phone: string, text: string): string {
   return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
 }
 
-export function loyaltyCardUrl(appUrl: string, memberCode: string): string {
+export function loyaltyCardUrl(appUrl: string, folio: string): string {
   const base = appUrl.replace(/\/$/, "");
-  return `${base}/tarjeta/${memberCode}`;
+  return `${base}/tarjeta/${encodeURIComponent(folio)}`;
+}
+
+/** Identificador de tarjeta en URL o QR: folio (C-0001) o código largo legacy. */
+export function parseLoyaltyCardSlug(value: string): string | null {
+  let raw = value.trim();
+  try {
+    raw = decodeURIComponent(raw);
+  } catch {
+    return null;
+  }
+  return normalizeMemberCode(raw) ?? normalizeLoyaltyFolio(raw);
 }
 
 export function memberCodeFromScan(text: string): string | null {
@@ -290,12 +301,20 @@ export function memberCodeFromScan(text: string): string | null {
     const url = new URL(trimmed);
     const parts = url.pathname.split("/").filter((part) => part.length > 0);
     if (parts.length === 2 && parts[0] === "tarjeta") {
-      return normalizeMemberCode(parts[1] ?? "");
+      return parseLoyaltyCardSlug(parts[1] ?? "");
     }
     return null;
   } catch {
-    return normalizeMemberCode(trimmed);
+    return parseLoyaltyCardSlug(trimmed);
   }
+}
+
+export function normalizeLoyaltyFolio(value: string): string | null {
+  const folio = value.trim().toUpperCase();
+  if (!/^C-[0-9]{4,}$/.test(folio)) {
+    return null;
+  }
+  return folio;
 }
 
 export function normalizeMemberCode(value: string): string | null {
