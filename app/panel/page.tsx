@@ -8,6 +8,7 @@ import { getPeakHour } from "@/lib/availability";
 import { formatDisplayDate, todayStr } from "@/lib/dates";
 import { DEFAULT_CAPACITY_CONFIG } from "@/lib/mock-data";
 import { PanelStatCard } from "@/components/panel/PanelStatCard";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { StatusBadge } from "@/components/panel/StatusBadge";
 import type { CapacityConfig } from "@/lib/types";
 
@@ -51,7 +52,7 @@ export default function PanelDashboardPage() {
   const totalGuests = activeToday.reduce((sum, r) => sum + r.partySize, 0);
 
   if (loading) {
-    return <p className="text-stone-500">Cargando resumen…</p>;
+    return <LoadingSpinner label="Cargando resumen" />;
   }
 
   if (error) {

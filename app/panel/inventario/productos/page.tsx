@@ -6,6 +6,7 @@ import { ConfirmDialog } from "@/components/panel/ConfirmDialog";
 import { PanelSectionCard } from "@/components/panel/PanelSectionCard";
 import { StockStatusBadge } from "@/components/panel/inventory/StockStatusBadge";
 import { getStockRowClass } from "@/lib/inventory-ui";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import type { Product } from "@/lib/types";
 
 const UNITS = ["kg", "lt", "pieza", "paquete", "caja"];
@@ -120,7 +121,7 @@ export default function InventarioProductosPage() {
       </div>
 
       {error && <p className="mt-4 text-sm text-red-700">{error}</p>}
-      {loading && <p className="mt-4 text-sm text-stone-500">Cargando catálogo…</p>}
+      {loading && <LoadingSpinner label="Cargando catálogo" className="mt-4" />}
 
       {showForm && (
         <form

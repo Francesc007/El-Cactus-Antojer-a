@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useReservations } from "@/context/ReservationContext";
 import { PanelStatCard } from "@/components/panel/PanelStatCard";
 import { DatePicker } from "@/components/ui/DatePicker";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { StatusBadge } from "@/components/panel/StatusBadge";
 import { apiRequest } from "@/lib/api-client";
 import { todayStr } from "@/lib/dates";
@@ -156,7 +157,7 @@ export default function PanelReservasPage() {
 
       <div className="premium-card mt-6 overflow-hidden">
         {loading ? (
-          <p className="p-8 text-center text-stone-500">Cargando agenda…</p>
+          <LoadingSpinner label="Cargando agenda" className="py-8" />
         ) : error ? (
           <p className="p-8 text-center text-red-700">{error}</p>
         ) : dayReservations.length === 0 ? (

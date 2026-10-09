@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { apiRequest } from "@/lib/api-client";
 import { LoyaltyConfigOverview } from "@/components/panel/loyalty/LoyaltyConfigOverview";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import type { LoyaltySettingsView } from "@/lib/types";
 
 type SettingsResponse = {
@@ -63,7 +64,11 @@ export default function ConfiguracionTarjetaPage() {
   }
 
   if (!settings) {
-    return <p className="text-stone-500">{error ?? "Cargando configuración…"}</p>;
+    return error ? (
+      <p className="text-stone-500">{error}</p>
+    ) : (
+      <LoadingSpinner label="Cargando configuración" />
+    );
   }
 
   return (

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { LoyaltyPhoto } from "@/components/loyalty/LoyaltyPhoto";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { apiRequest } from "@/lib/api-client";
 import type { LoyaltyListItem } from "@/lib/types";
 
@@ -69,7 +70,7 @@ export default function ClientesPage() {
         </button>
       </form>
 
-      {loading && <p className="mt-6 text-stone-500">Cargando clientes…</p>}
+      {loading && <LoadingSpinner label="Cargando clientes" className="mt-6" />}
       {error && <p className="mt-6 text-red-700">{error}</p>}
 
       {!loading && !error && members.length === 0 && (

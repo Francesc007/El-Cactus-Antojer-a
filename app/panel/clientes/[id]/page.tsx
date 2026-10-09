@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { LoyaltyPhoto } from "@/components/loyalty/LoyaltyPhoto";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { StampRow } from "@/components/loyalty/StampRow";
 import { ConfirmDialog } from "@/components/panel/ConfirmDialog";
 import { ApiRequestError, apiFormRequest, apiRequest } from "@/lib/api-client";
@@ -165,7 +166,7 @@ export default function ClienteDetailPage() {
   }
 
   if (loading && !member) {
-    return <p className="text-stone-500">Cargando tarjeta…</p>;
+    return <LoadingSpinner label="Cargando tarjeta" />;
   }
   if (!member) {
     return <p className="text-red-700">{error ?? "No encontramos esa tarjeta."}</p>;

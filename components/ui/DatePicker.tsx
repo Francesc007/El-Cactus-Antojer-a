@@ -27,6 +27,7 @@ type MenuPosition = {
   top: number;
   left: number;
   width: number;
+  maxHeight: number;
 };
 
 export function DatePicker({
@@ -35,7 +36,6 @@ export function DatePicker({
   onChange,
   min,
   max,
-  required = false,
   disabled = false,
   className = "",
   placeholder = "Selecciona una fecha",
@@ -62,23 +62,62 @@ export function DatePicker({
       const trigger = rootRef.current;
       if (!trigger) return;
       const rect = trigger.getBoundingClientRect();
-      const width = Math.max(rect.width, 280);
-      const left = Math.min(rect.left, window.innerWidth - width - 12);
-      setMenuPos({
-        top: rect.bottom + 8,
-        left: Math.max(12, left),
-        width,
+      const viewport = window.visualViewport;
+      const viewTop = viewport?.offsetTop ?? 0;
+      const viewHeight = viewport?.height ?? window.innerHeight;
+      const viewBottom = viewTop + viewHeight;
+      const margin = 12;
+      const width = Math.min(Math.max(rect.width, 280), window.innerWidth - margin * 2);
+      const left = Math.min(Math.max(margin, rect.left), window.innerWidth - width - margin);
+      const spaceBelow = Math.max(0, viewBottom - rect.bottom - margin);
+      const spaceAbove = Math.max(0, rect.top - viewTop - margin);
+      const needed = calendarRef.current?.scrollHeight ?? 380;
+      const placeBelow = spaceBelow >= needed || spaceBelow >= spaceAbove;
+      const room = placeBelow ? spaceBelow : spaceAbove;
+      const maxHeight = Math.max(1, Math.min(needed, room));
+      const unclampedTop = placeBelow ? rect.bottom + 8 : rect.top - 8 - maxHeight;
+      const top = Math.min(
+        Math.max(viewTop + margin, unclampedTop),
+        Math.max(viewTop + margin, viewBottom - margin - maxHeight)
+      );
+
+      setMenuPos((current) => {
+        if (
+          current &&
+          current.top === Math.round(top) &&
+          current.left === Math.round(left) &&
+          current.width === Math.round(width) &&
+          current.maxHeight === Math.round(maxHeight)
+        ) {
+          return current;
+        }
+        return {
+          top: Math.round(top),
+          left: Math.round(left),
+          width: Math.round(width),
+          maxHeight: Math.round(maxHeight),
+        };
       });
     }
 
     updatePosition();
+    const frame = requestAnimationFrame(updatePosition);
     window.addEventListener("resize", updatePosition);
-    document.addEventListener("scroll", updatePosition, true);
+    window.visualViewport?.addEventListener("resize", updatePosition);
+    window.visualViewport?.addEventListener("scroll", updatePosition);
+    function handleScroll(event: Event) {
+      if (calendarRef.current?.contains(event.target as Node)) return;
+      updatePosition();
+    }
+    document.addEventListener("scroll", handleScroll, true);
     return () => {
+      cancelAnimationFrame(frame);
       window.removeEventListener("resize", updatePosition);
-      document.removeEventListener("scroll", updatePosition, true);
+      window.visualViewport?.removeEventListener("resize", updatePosition);
+      window.visualViewport?.removeEventListener("scroll", updatePosition);
+      document.removeEventListener("scroll", handleScroll, true);
     };
-  }, [open]);
+  }, [open, year, monthIndex]);
 
   useEffect(() => {
     if (!open) return;
@@ -121,9 +160,10 @@ export function DatePicker({
           top: menuPos.top,
           left: menuPos.left,
           width: menuPos.width,
+          maxHeight: menuPos.maxHeight,
           zIndex: 80,
         }}
-        className="rounded-2xl border-2 border-cactus-forest/25 bg-white p-4 shadow-xl ring-1 ring-cactus-lime/20"
+        className="overflow-y-auto overscroll-contain rounded-2xl border-2 border-cactus-forest/25 bg-white p-4 shadow-xl ring-1 ring-cactus-lime/20"
       >
         <div className="mb-4 flex items-center justify-between gap-2">
           <button
@@ -194,7 +234,6 @@ export function DatePicker({
         id={inputId}
         type="button"
         disabled={disabled}
-        aria-required={required}
         aria-expanded={open}
         aria-haspopup="dialog"
         onClick={() => setOpen((current) => !current)}

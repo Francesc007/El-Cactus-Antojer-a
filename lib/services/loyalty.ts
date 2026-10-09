@@ -31,6 +31,7 @@ import {
 } from "@/lib/loyalty";
 import { logEvent } from "@/lib/observability";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
+import { supabaseFetch } from "@/lib/supabase/fetch";
 import type {
   BirthdayBoard,
   BirthdayEntry,
@@ -183,7 +184,35 @@ async function loadProgress(memberIds: string[]): Promise<Map<string, ProgressRo
   return map;
 }
 
+const PHOTO_SIGN_MARKER = "/storage/v1/object/sign/";
+
+let photoThumbsEnabled: boolean | null = null;
+
 async function signPhotos(paths: string[]): Promise<Map<string, string>> {
+  const originals = await createPhotoUrls(paths);
+  if (photoThumbsEnabled === false || originals.size === 0) {
+    return originals;
+  }
+
+  const thumbs = new Map<string, string>();
+  for (const [path, url] of originals) {
+    const thumb = photoThumbUrl(url);
+    if (!thumb) {
+      photoThumbsEnabled = false;
+      return originals;
+    }
+    thumbs.set(path, thumb);
+  }
+
+  if (photoThumbsEnabled === null) {
+    const sample = thumbs.values().next().value;
+    photoThumbsEnabled = sample ? await photoThumbResponds(sample) : false;
+  }
+
+  return photoThumbsEnabled ? thumbs : originals;
+}
+
+async function createPhotoUrls(paths: string[]): Promise<Map<string, string>> {
   const unique = [...new Set(paths.filter((path) => path.length > 0))];
   const map = new Map<string, string>();
   if (unique.length === 0) {
@@ -204,6 +233,41 @@ async function signPhotos(paths: string[]): Promise<Map<string, string>> {
     }
   }
   return map;
+}
+
+/** Versión chica para la pantalla. Si el servicio no la ofrece, se usa el archivo original. */
+function photoThumbUrl(signedUrl: string): string | null {
+  const index = signedUrl.indexOf(PHOTO_SIGN_MARKER);
+  if (index === -1) {
+    return null;
+  }
+  const rewritten =
+    signedUrl.slice(0, index) +
+    "/storage/v1/render/image/sign/" +
+    signedUrl.slice(index + PHOTO_SIGN_MARKER.length);
+  try {
+    const url = new URL(rewritten);
+    url.searchParams.set("width", "512");
+    url.searchParams.set("height", "512");
+    url.searchParams.set("resize", "cover");
+    url.searchParams.set("quality", "75");
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+async function photoThumbResponds(url: string): Promise<boolean> {
+  try {
+    const response = await supabaseFetch(url, { headers: { Range: "bytes=0-64" } });
+    if (!(response.ok || response.status === 206)) {
+      return false;
+    }
+    const type = response.headers.get("content-type") ?? "";
+    return !type.includes("json") && !type.startsWith("text/");
+  } catch {
+    return false;
+  }
 }
 
 function progressOf(map: Map<string, ProgressRow>, memberId: string): ProgressRow {

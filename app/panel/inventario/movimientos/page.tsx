@@ -5,6 +5,7 @@ import { useInventory } from "@/context/InventoryContext";
 import { todayStr } from "@/lib/dates";
 import { PanelSectionCard } from "@/components/panel/PanelSectionCard";
 import { DatePicker } from "@/components/ui/DatePicker";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { Pagination } from "@/components/ui/Pagination";
 import { Toast } from "@/components/ui/Toast";
 import type { StockMovement } from "@/lib/types";
@@ -246,7 +247,7 @@ export default function InventarioMovimientosPage() {
           </p>
         </div>
         {loadingList ? (
-          <p className="p-8 text-center text-stone-500">Cargando historial…</p>
+          <LoadingSpinner label="Cargando historial" className="py-8" />
         ) : movements.length === 0 ? (
           <p className="p-8 text-center text-stone-500">
             No hay movimientos con estos filtros.

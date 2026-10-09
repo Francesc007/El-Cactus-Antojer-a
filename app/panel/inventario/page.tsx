@@ -6,6 +6,7 @@ import { PanelSectionCard } from "@/components/panel/PanelSectionCard";
 import { PanelStatCard } from "@/components/panel/PanelStatCard";
 import { StockStatusBadge } from "@/components/panel/inventory/StockStatusBadge";
 import { compareStockStatus, getStockRowClass } from "@/lib/inventory-ui";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 
 export default function InventarioDashboardPage() {
   const {
@@ -27,7 +28,7 @@ export default function InventarioDashboardPage() {
     return a.name.localeCompare(b.name);
   });
 
-  if (loading) return <p className="text-stone-500">Cargando inventario…</p>;
+  if (loading) return <LoadingSpinner label="Cargando inventario" />;
   if (error) return <p className="text-red-700">{error}</p>;
 
   return (

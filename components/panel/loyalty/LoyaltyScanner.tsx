@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { LoyaltyPhoto } from "@/components/loyalty/LoyaltyPhoto";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { StampRow } from "@/components/loyalty/StampRow";
 import { ApiRequestError, apiRequest } from "@/lib/api-client";
 import { memberCodeFromScan } from "@/lib/loyalty";
@@ -234,7 +235,7 @@ export function LoyaltyScanner() {
       {scanning && matches.length === 0 && (
         <div id="loyalty-qr-reader" className="premium-card mt-4 min-h-60 overflow-hidden" />
       )}
-      {loading && <p className="mt-4 text-stone-500">Cargando…</p>}
+      {loading && <LoadingSpinner label="Cargando cliente" className="mt-4 py-6" />}
 
       {matches.length > 1 && !preview && (
         <ul className="mt-4 space-y-2">

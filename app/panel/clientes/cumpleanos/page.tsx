@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { BirthdayMessagePreviewDialog } from "@/components/panel/loyalty/BirthdayMessagePreviewDialog";
 import { LoyaltyPhoto } from "@/components/loyalty/LoyaltyPhoto";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { isDemoLoyaltyMember } from "@/lib/loyalty";
 import { apiRequest } from "@/lib/api-client";
 import type { BirthdayBoard, BirthdayEntry, BirthdaySendStatus } from "@/lib/types";
@@ -115,7 +116,7 @@ export default function CumpleanosPage() {
   }
 
   if (loading && !board) {
-    return <p className="text-stone-500">Cargando cumpleaños…</p>;
+    return <LoadingSpinner label="Cargando cumpleaños" />;
   }
   if (!board) {
     return <p className="text-red-700">{error}</p>;

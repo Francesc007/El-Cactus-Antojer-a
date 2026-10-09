@@ -202,6 +202,8 @@ export function StockReportPdfDocument({ data, logoUrl }: StockReportPdfDocument
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
           <View style={styles.headerLeft}>
+            {/* El componente Image del PDF no acepta texto alternativo; el nombre va al lado. */}
+            {/* eslint-disable-next-line jsx-a11y/alt-text */}
             <Image src={logoUrl} style={styles.logo} />
             <View>
               <Text style={styles.title}>{data.businessName}</Text>
