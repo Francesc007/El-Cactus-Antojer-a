@@ -84,11 +84,10 @@ export default function ClientesPage() {
               className="premium-card flex h-full flex-col items-center gap-2 p-3 text-center transition hover:ring-2 hover:ring-cactus-lime/40"
             >
               <LoyaltyPhoto
-                src={null}
+                src={member.photoUrl}
                 name={member.fullName}
                 progress={member.currentVisits}
                 size="xs"
-                initialOnly
               />
               <div className="min-w-0 w-full">
                 <p className="truncate text-sm font-semibold text-cactus-charcoal">{member.fullName}</p>

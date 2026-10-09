@@ -34,7 +34,7 @@ function BirthdayEntryCard({ entry, provider, onPreviewOrWhatsApp, onMarkSent }:
   return (
     <li className="min-w-0">
       <article className="premium-card flex h-full flex-col items-center gap-2 p-3 text-center">
-        <LoyaltyPhoto src={entry.photoUrl} name={entry.fullName} size="xs" initialOnly />
+        <LoyaltyPhoto src={entry.photoUrl} name={entry.fullName} size="xs" />
         <div className="min-w-0 w-full">
           <p className="truncate text-sm font-semibold text-cactus-charcoal">{entry.fullName}</p>
           <p className="mt-0.5 font-mono text-[11px] font-bold tracking-wide text-stone-500">{entry.folio}</p>
