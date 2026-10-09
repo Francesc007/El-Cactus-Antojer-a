@@ -9,7 +9,7 @@ import { getPublicLoyaltyCard } from "@/lib/services/loyalty";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Tarjeta VIP",
+  title: { absolute: "Tarjeta VIP" },
   robots: { index: false, follow: false },
 };
 

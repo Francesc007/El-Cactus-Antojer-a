@@ -27,9 +27,15 @@ const STEPS = {
     { icon: "✅", text: "Confirma. El icono abre esta misma página, con tus visitas al día." },
   ],
   android: [
-    { icon: "⋮", text: "Abre el menú del navegador (los tres puntos)." },
-    { icon: "📲", text: "Elige “Agregar a la pantalla principal” o “Instalar app”." },
-    { icon: "✅", text: "Confirma. Desde ese icono siempre ves el avance real." },
+    { icon: "⋮", text: "En Chrome, abre el menú ⋮ (arriba a la derecha)." },
+    {
+      icon: "📲",
+      text: "Toca “Agregar a la pantalla de inicio” y elige “Crear acceso directo” (abre en Chrome).",
+    },
+    {
+      icon: "✅",
+      text: "No uses “Instalar”: esa opción no aplica aquí. Confirma el acceso directo con el logo del Cactus.",
+    },
   ],
 } as const;
 
@@ -83,7 +89,7 @@ export function LoyaltyCardActions({
       <section className="rounded-2xl border border-cactus-sand bg-gradient-to-br from-white to-cactus-cream/50 p-4">
         <p className="text-sm font-bold text-cactus-charcoal">Tenla siempre en tu celular</p>
         <p className="mt-1 text-sm leading-relaxed text-stone-600">
-          Agrega esta página a la pantalla de inicio.
+          En Android usa Chrome y crea un acceso directo en la pantalla de inicio (no instales una app).
         </p>
         <div className="mt-3 grid grid-cols-2 gap-2">
           <button

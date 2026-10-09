@@ -26,7 +26,10 @@ export const metadata: Metadata = {
   },
   description:
     "Antojería mexicana con sabor auténtico. Reserva tu mesa en línea.",
-  icons: { icon: "/logo.png" },
+  icons: {
+    icon: [{ url: "/logo.png", type: "image/png" }],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
   openGraph: {
     title: "El Cactus Antojería",
     description: "Reserva tu mesa en El Cactus Antojería, Tepeji del Río.",
