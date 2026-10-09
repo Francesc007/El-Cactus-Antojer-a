@@ -179,6 +179,7 @@ export type LoyaltyMemberDetail = {
   fullName: string;
   folio: string;
   phone: string;
+  cardUrl: string;
   birthDay: number;
   birthMonth: number;
   birthYear: number | null;
@@ -199,6 +200,7 @@ export type LoyaltyMemberDetail = {
 export type PublicLoyaltyCard = {
   firstName: string;
   folio: string;
+  phone: string;
   photoUrl: string | null;
   currentVisits: number;
   visitsPerReward: number;

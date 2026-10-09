@@ -65,7 +65,7 @@ export function errorFromUnknown(error: unknown): AppError {
   }
   if (message.includes("PHONE_TAKEN")) {
     return new AppError(
-      "Ese número ya tiene tarjeta. Pídela en el negocio.",
+      "Este número ya está registrado. Si necesitas tu tarjeta, pídela en el negocio.",
       "PHONE_TAKEN",
       409
     );

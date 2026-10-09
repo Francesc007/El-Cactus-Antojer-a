@@ -1,11 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { LoyaltyPhoto } from "@/components/loyalty/LoyaltyPhoto";
 import { StampRow } from "@/components/loyalty/StampRow";
 import { ApiRequestError, apiRequest } from "@/lib/api-client";
 import { memberCodeFromScan } from "@/lib/loyalty";
-import type { LoyaltyMemberDetail, LoyaltyPreview, LoyaltyVisitSource } from "@/lib/types";
+import type { LoyaltyListItem, LoyaltyMemberDetail, LoyaltyPreview, LoyaltyVisitSource } from "@/lib/types";
 
 function asPreview(member: LoyaltyMemberDetail): LoyaltyPreview {
   return {
@@ -25,7 +25,8 @@ function asPreview(member: LoyaltyMemberDetail): LoyaltyPreview {
 }
 
 export function LoyaltyScanner() {
-  const [phone, setPhone] = useState("");
+  const [query, setQuery] = useState("");
+  const [matches, setMatches] = useState<LoyaltyListItem[]>([]);
   const [cameraMessage, setCameraMessage] = useState<string | null>(null);
   const [scanError, setScanError] = useState<string | null>(null);
   const [preview, setPreview] = useState<LoyaltyPreview | null>(null);
@@ -95,7 +96,9 @@ export function LoyaltyScanner() {
         );
       } catch {
         if (!stopped) {
-          setCameraMessage("El celular no dejó usar la cámara. Puedes buscar al cliente por teléfono.");
+          setCameraMessage(
+            "El celular no dejó usar la cámara. Busca al cliente por nombre, teléfono o folio."
+          );
         }
       }
     }
@@ -109,6 +112,57 @@ export function LoyaltyScanner() {
       }
     };
   }, [loadPreview, scanning]);
+
+  async function openMember(memberId: string) {
+    setLoading(true);
+    setActionError(null);
+    setNotice(null);
+    try {
+      const data = await apiRequest<{ member: LoyaltyMemberDetail }>(`/api/loyalty/members/${memberId}`);
+      setMatches([]);
+      setPreview(asPreview(data.member));
+      setScanning(false);
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "No se encontró la tarjeta.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function searchCustomer(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const nextQuery = query.trim();
+    if (!nextQuery) {
+      return;
+    }
+    setSource("manual");
+    setLoading(true);
+    setActionError(null);
+    setNotice(null);
+    setScanError(null);
+    try {
+      const data = await apiRequest<{ members: LoyaltyListItem[] }>(
+        `/api/loyalty/members?q=${encodeURIComponent(nextQuery)}`
+      );
+      if (data.members.length === 0) {
+        setMatches([]);
+        setPreview(null);
+        setActionError("No encontramos a ese cliente. Revisa el nombre, el teléfono o el folio.");
+        return;
+      }
+      if (data.members.length === 1) {
+        await openMember(data.members[0].id);
+        return;
+      }
+      setPreview(null);
+      setMatches(data.members);
+      setScanning(false);
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "No se pudo buscar al cliente.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   async function registerVisit(force: boolean) {
     if (!preview) {
@@ -155,22 +209,14 @@ export function LoyaltyScanner() {
       <p className="section-eyebrow">Tarjeta VIP</p>
       <h1 className="section-title mt-1">Escanear</h1>
       <p className="mt-1 text-sm text-stone-600">
-        Leer el código no registra la visita. Primero confirma que sea la persona.
+        Leer el código no registra la visita. Si no se puede escanear, busca por nombre, teléfono o folio y confirma a la persona.
       </p>
 
-      <form
-        className="mt-4 flex gap-2"
-        onSubmit={(event) => {
-          event.preventDefault();
-          setSource("manual");
-          void loadPreview(`/api/loyalty/preview?phone=${encodeURIComponent(phone)}`);
-        }}
-      >
+      <form className="mt-4 flex gap-2" onSubmit={(event) => void searchCustomer(event)}>
         <input
-          value={phone}
-          onChange={(event) => setPhone(event.target.value)}
-          inputMode="tel"
-          placeholder="Buscar por teléfono"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Nombre, teléfono o folio"
           className="input-premium"
         />
         <button type="submit" className="rounded-xl bg-cactus-forest px-4 py-3 text-sm font-bold text-white">
@@ -185,8 +231,32 @@ export function LoyaltyScanner() {
       {actionError && <p className="mt-3 text-sm text-red-700">{actionError}</p>}
       {notice && <p className="mt-3 text-sm font-semibold text-cactus-forest">{notice}</p>}
 
-      {scanning && <div id="loyalty-qr-reader" className="premium-card mt-4 min-h-60 overflow-hidden" />}
+      {scanning && matches.length === 0 && (
+        <div id="loyalty-qr-reader" className="premium-card mt-4 min-h-60 overflow-hidden" />
+      )}
       {loading && <p className="mt-4 text-stone-500">Cargando…</p>}
+
+      {matches.length > 1 && !preview && (
+        <ul className="mt-4 space-y-2">
+          {matches.map((member) => (
+            <li key={member.id}>
+              <button
+                type="button"
+                onClick={() => void openMember(member.id)}
+                className="premium-card flex w-full items-center gap-3 p-3 text-left"
+              >
+                <LoyaltyPhoto src={member.photoUrl} name={member.fullName} size="xs" />
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-semibold text-cactus-charcoal">
+                    {member.fullName}
+                  </span>
+                  <span className="block font-mono text-xs text-stone-500">Folio {member.folio}</span>
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
 
       {preview && (
         <section className="premium-card mt-4 p-4 text-center">
@@ -206,11 +276,11 @@ export function LoyaltyScanner() {
           <div className="mt-4">
             <StampRow current={preview.currentVisits} total={preview.visitsPerReward} />
           </div>
-          <p className="mt-3 text-sm font-semibold text-cactus-forest">
-            {preview.rewardAvailable
-              ? `Premio disponible: ${preview.rewardDescription}`
-              : `Faltan ${preview.visitsUntilReward} para ${preview.rewardDescription}`}
-          </p>
+          {preview.rewardAvailable && (
+            <p className="mt-3 text-sm font-semibold text-cactus-forest">
+              Premio disponible: {preview.rewardDescription}
+            </p>
+          )}
           {preview.status === "inactive" && (
             <p className="mt-3 text-sm text-red-700">Esta tarjeta está inactiva.</p>
           )}
@@ -245,6 +315,7 @@ export function LoyaltyScanner() {
               className="rounded-xl border border-stone-300 px-4 py-3 text-sm font-semibold text-stone-600"
               onClick={() => {
                 setPreview(null);
+                setMatches([]);
                 setNotice(null);
                 setActionError(null);
                 setScanning(true);

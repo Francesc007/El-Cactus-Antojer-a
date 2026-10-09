@@ -307,7 +307,7 @@ export async function createLoyaltyMember(input: {
     await removePhoto(path);
     if (error && isPhoneTaken(error)) {
       throw new AppError(
-        "Ese número ya tiene tarjeta. Pídela en el negocio.",
+        "Este número ya está registrado. Si necesitas tu tarjeta, pídela en el negocio.",
         "PHONE_TAKEN",
         409
       );
@@ -475,6 +475,7 @@ export async function getPublicLoyaltyCard(code: string): Promise<PublicLoyaltyC
   return {
     firstName: firstName(member.full_name),
     folio: member.folio,
+    phone: member.phone,
     photoUrl: photos.get(member.photo_path) ?? null,
     currentVisits: displayedCardVisits(card.valid_visits, card.visits_consumed),
     visitsPerReward: settings.visits_per_reward,
@@ -483,6 +484,30 @@ export async function getPublicLoyaltyCard(code: string): Promise<PublicLoyaltyC
     visitsUntilReward: visitsUntilReward(current, settings.visits_per_reward),
     cardUrl: loyaltyCardUrl(getServerEnv().appUrl, member.member_code),
   };
+}
+
+export async function readPublicLoyaltyPhoto(
+  code: string
+): Promise<{ bytes: Uint8Array; mime: string } | null> {
+  const memberCode = normalizeMemberCode(code);
+  if (!memberCode) {
+    return null;
+  }
+  const member = await loadMemberBy("member_code", memberCode);
+  if (!member) {
+    return null;
+  }
+  const admin = createAdminSupabaseClient();
+  const { data, error } = await admin.storage.from(LOYALTY_PHOTO_BUCKET).download(member.photo_path);
+  if (error || !data) {
+    return null;
+  }
+  const bytes = new Uint8Array(await data.arrayBuffer());
+  const kind = detectLoyaltyImage(bytes);
+  if (!kind) {
+    return null;
+  }
+  return { bytes, mime: kind.mime };
 }
 
 export async function getLoyaltyMemberDetail(id: string, now = new Date()): Promise<LoyaltyMemberDetail> {
@@ -536,6 +561,7 @@ export async function getLoyaltyMemberDetail(id: string, now = new Date()): Prom
     fullName: member.full_name,
     folio: member.folio,
     phone: member.phone,
+    cardUrl: loyaltyCardUrl(getServerEnv().appUrl, member.member_code),
     birthDay: member.birth_day,
     birthMonth: member.birth_month,
     birthYear: member.birth_year,
@@ -598,7 +624,7 @@ export async function updateLoyaltyMember(id: string, input: UpdateLoyaltyMember
   if (error) {
     if (isPhoneTaken(error)) {
       throw new AppError(
-        "Ese número ya tiene tarjeta. Pídela en el negocio.",
+        "Este número ya está registrado. Si necesitas tu tarjeta, pídela en el negocio.",
         "PHONE_TAKEN",
         409
       );

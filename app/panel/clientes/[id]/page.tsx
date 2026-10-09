@@ -6,7 +6,9 @@ import { LoyaltyPhoto } from "@/components/loyalty/LoyaltyPhoto";
 import { StampRow } from "@/components/loyalty/StampRow";
 import { ConfirmDialog } from "@/components/panel/ConfirmDialog";
 import { ApiRequestError, apiFormRequest, apiRequest } from "@/lib/api-client";
-import { LOYALTY_PHOTO_MAX_BYTES } from "@/lib/loyalty";
+import { firstName, LOYALTY_PHOTO_MAX_BYTES } from "@/lib/loyalty";
+import { formatLoyaltyCardWhatsAppMessage } from "@/lib/loyalty-card-share";
+import { buildWhatsAppSendUrl } from "@/lib/reservation-whatsapp-message";
 import type { LoyaltyMemberDetail, UserRole } from "@/lib/types";
 
 const MONTHS = [
@@ -188,11 +190,21 @@ export default function ClienteDetailPage() {
         <div className="mt-4">
           <StampRow current={member.currentVisits} total={member.visitsPerReward} />
         </div>
-        <p className="mt-3 text-sm font-semibold text-cactus-forest">
-          {member.rewardAvailable
-            ? `Premio disponible: ${member.rewardDescription}`
-            : `Faltan ${member.visitsUntilReward} visitas para ${member.rewardDescription}`}
-        </p>
+        <button
+          type="button"
+          onClick={() => {
+            const message = formatLoyaltyCardWhatsAppMessage(firstName(member.fullName), member.cardUrl);
+            window.open(buildWhatsAppSendUrl(member.phone, message), "_blank", "noopener,noreferrer");
+          }}
+          className="mt-4 w-full rounded-xl bg-cactus-forest px-4 py-3 text-sm font-bold text-white"
+        >
+          Reenviar tarjeta por WhatsApp
+        </button>
+        {member.rewardAvailable && (
+          <p className="mt-3 text-sm font-semibold text-cactus-forest">
+            Premio disponible: {member.rewardDescription}
+          </p>
+        )}
         <p className="mt-2 text-sm text-stone-600">
           {member.marketingConsent
             ? "Acepta mensajes de cumpleaños y promociones."

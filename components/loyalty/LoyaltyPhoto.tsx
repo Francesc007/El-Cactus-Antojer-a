@@ -40,7 +40,7 @@ export function LoyaltyPhoto({
       )}
       {progress !== undefined && (
         <span
-          className={`absolute -top-1 left-1/2 flex -translate-x-1/2 items-center justify-center rounded-full bg-cactus-sunset font-bold text-white ring-2 ring-white ${
+          className={`absolute -bottom-0.5 -right-0.5 flex items-center justify-center rounded-full bg-cactus-sunset font-bold text-white ring-2 ring-white ${
             size === "xs" ? "h-5 min-w-5 px-0.5 text-[10px]" : "h-6 min-w-6 px-1 text-xs"
           }`}
         >
