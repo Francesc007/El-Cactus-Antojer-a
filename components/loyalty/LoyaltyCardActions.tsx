@@ -20,25 +20,6 @@ type LoyaltyCardActionsProps = {
 const BRAND_SUN = "#FED500";
 const BRAND_SUNSET = "#F7941D";
 
-const STEPS = {
-  iphone: [
-    { icon: "⬆️", text: "Toca Compartir (el cuadrado con la flecha hacia arriba)." },
-    { icon: "➕", text: "Elige “Agregar a pantalla de inicio”." },
-    { icon: "✅", text: "Confirma. El icono abre esta misma página, con tus visitas al día." },
-  ],
-  android: [
-    { icon: "⋮", text: "En Chrome, abre el menú ⋮ (arriba a la derecha)." },
-    {
-      icon: "📲",
-      text: "Toca “Agregar a la pantalla de inicio” y elige “Crear acceso directo” (abre en Chrome).",
-    },
-    {
-      icon: "✅",
-      text: "No uses “Instalar”: esa opción no aplica aquí. Confirma el acceso directo con el logo del Cactus.",
-    },
-  ],
-} as const;
-
 export function LoyaltyCardActions({
   firstName,
   folio,
@@ -46,7 +27,6 @@ export function LoyaltyCardActions({
   cardUrl,
   qrDataUrl,
 }: LoyaltyCardActionsProps) {
-  const [device, setDevice] = useState<"iphone" | "android">("iphone");
   const [downloadError, setDownloadError] = useState<string | null>(null);
 
   function sendToSelf() {
@@ -78,54 +58,11 @@ export function LoyaltyCardActions({
     }
   }
 
-  const steps = STEPS[device];
-
   return (
     <div className="mt-6 space-y-4 text-left">
       <button type="button" onClick={sendToSelf} className="btn-primary w-full py-3 text-base">
         Enviármela por WhatsApp
       </button>
-
-      <section className="rounded-2xl border border-cactus-sand bg-gradient-to-br from-white to-cactus-cream/50 p-4">
-        <p className="text-sm font-bold text-cactus-charcoal">Tenla siempre en tu celular</p>
-        <p className="mt-1 text-sm leading-relaxed text-stone-600">
-          En Android usa Chrome y crea un acceso directo en la pantalla de inicio (no instales una app).
-        </p>
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={() => setDevice("iphone")}
-            className={`rounded-xl px-3 py-2 text-sm font-bold ${
-              device === "iphone"
-                ? "bg-cactus-forest text-white"
-                : "bg-white text-stone-600 ring-1 ring-cactus-sand"
-            }`}
-          >
-            🍎 iPhone
-          </button>
-          <button
-            type="button"
-            onClick={() => setDevice("android")}
-            className={`rounded-xl px-3 py-2 text-sm font-bold ${
-              device === "android"
-                ? "bg-cactus-forest text-white"
-                : "bg-white text-stone-600 ring-1 ring-cactus-sand"
-            }`}
-          >
-            🤖 Android
-          </button>
-        </div>
-        <ol className="mt-3 space-y-2">
-          {steps.map((step) => (
-            <li key={step.text} className="flex gap-3 rounded-xl bg-white/80 p-3 ring-1 ring-stone-100">
-              <span className="text-xl" aria-hidden>
-                {step.icon}
-              </span>
-              <span className="text-sm leading-relaxed text-stone-700">{step.text}</span>
-            </li>
-          ))}
-        </ol>
-      </section>
 
       <button
         type="button"

@@ -95,46 +95,53 @@ export function LoyaltySignupForm() {
         />
       </label>
 
-      <div className="grid grid-cols-2 gap-3">
-        <label className="block text-sm font-semibold text-stone-700">
-          Día
-          <select name="birthDay" required defaultValue="" className="input-premium mt-1">
-            <option value="" disabled>
-              Día
-            </option>
-            {Array.from({ length: 31 }, (_, index) => index + 1).map((day) => (
-              <option key={day} value={day}>
-                {day}
+      <fieldset className="space-y-3 border-0 p-0">
+        <legend className="mb-0 w-full text-sm font-semibold text-stone-700">
+          ¿Cuándo es tu cumpleaños?
+          <span className="mt-0.5 block text-xs font-normal leading-snug text-stone-500">
+            El día y el mes nos sirven para felicitarte. El año no es obligatorio.
+          </span>
+        </legend>
+        <div className="grid grid-cols-2 gap-3">
+          <label className="block text-sm font-semibold text-stone-700">
+            Día
+            <select name="birthDay" required defaultValue="" className="input-premium mt-1">
+              <option value="" disabled>
+                Día
               </option>
-            ))}
-          </select>
-        </label>
-        <label className="block text-sm font-semibold text-stone-700">
-          Mes
-          <select name="birthMonth" required defaultValue="" className="input-premium mt-1">
-            <option value="" disabled>
-              Mes
-            </option>
-            {MONTHS.map((month, index) => (
-              <option key={month} value={index + 1}>
-                {month}
+              {Array.from({ length: 31 }, (_, index) => index + 1).map((day) => (
+                <option key={day} value={day}>
+                  {day}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block text-sm font-semibold text-stone-700">
+            Mes
+            <select name="birthMonth" required defaultValue="" className="input-premium mt-1">
+              <option value="" disabled>
+                Mes
               </option>
-            ))}
-          </select>
+              {MONTHS.map((month, index) => (
+                <option key={month} value={index + 1}>
+                  {month}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <label className="block text-sm font-semibold text-stone-700">
+          Año <span className="font-normal text-stone-500">(opcional)</span>
+          <input
+            name="birthYear"
+            inputMode="numeric"
+            autoComplete="bday-year"
+            maxLength={4}
+            placeholder="Si lo quieres dar"
+            className="input-premium mt-1"
+          />
         </label>
-      </div>
-
-      <label className="block text-sm font-semibold text-stone-700">
-        Año <span className="font-normal text-stone-500">(opcional)</span>
-        <input
-          name="birthYear"
-          inputMode="numeric"
-          autoComplete="bday-year"
-          maxLength={4}
-          placeholder="Si lo quieres dar"
-          className="input-premium mt-1"
-        />
-      </label>
+      </fieldset>
 
       <div>
         <p className="text-sm font-semibold text-stone-700">Foto</p>
