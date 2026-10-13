@@ -30,6 +30,7 @@ import {
   type CalendarDate,
 } from "@/lib/loyalty";
 import { logEvent } from "@/lib/observability";
+import { removeReviewEvidenceForMember } from "@/lib/services/reviews";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { supabaseFetch } from "@/lib/supabase/fetch";
 import type {
@@ -785,6 +786,8 @@ export async function deleteLoyaltyMember(id: string): Promise<void> {
       throw new AppError("No se pudo eliminar la tarjeta.", "LOYALTY_DELETE", 500);
     }
   }
+
+  await removeReviewEvidenceForMember(id);
 
   const { error } = await admin.from("loyalty_members").delete().eq("id", id);
   if (error) {

@@ -2,6 +2,11 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // El middleware del panel existe; sin este tope Next puede cortar POST con foto
+  // (reseñas y alta de tarjeta) y el celular muestra "Failed to fetch".
+  experimental: {
+    middlewareClientMaxBodySize: "10mb",
+  },
   async headers() {
     return [
       {

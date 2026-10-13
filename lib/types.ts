@@ -246,3 +246,25 @@ export type BirthdayBoard = {
   week: BirthdayEntry[];
   upcoming: BirthdayEntry[];
 };
+
+export type ReviewPlatform = "google" | "facebook" | "instagram";
+export type ReviewStatus = "pending" | "approved" | "rejected";
+
+export type ReviewPublicStatus = {
+  firstName: string;
+  googleSubmitted: boolean;
+};
+
+export type ReviewListItem = {
+  id: string;
+  memberId: string;
+  fullName: string;
+  folio: string;
+  phone: string;
+  platform: ReviewPlatform;
+  imageUrl: string | null;
+  status: ReviewStatus;
+  createdAt: string;
+  createdAtLabel: string;
+  validatedAtLabel: string | null;
+};

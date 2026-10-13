@@ -14,3 +14,12 @@ test("el panel exige autenticación", async ({ page }) => {
   await page.goto("/panel");
   await expect(page).toHaveURL(/login/);
 });
+
+test("el botón de reseña abre las tres redes", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Deja tu reseña" }).click();
+  await expect(page.getByRole("heading", { name: "Deja tu reseña" })).toBeVisible();
+  await expect(page.getByText("Google Maps")).toBeVisible();
+  await expect(page.getByText("Facebook")).toBeVisible();
+  await expect(page.getByText("Instagram")).toBeVisible();
+});

@@ -100,6 +100,39 @@ export function errorFromUnknown(error: unknown): AppError {
   if (message.includes("VISIT_ALREADY_VOID")) {
     return new AppError("Esa visita ya estaba anulada.", "VISIT_ALREADY_VOID", 409);
   }
+  if (message.includes("GOOGLE_REVIEW_ALREADY_SUBMITTED")) {
+    return new AppError(
+      "Ya registramos tu reseña de Google Maps.",
+      "GOOGLE_REVIEW_ALREADY_SUBMITTED",
+      409
+    );
+  }
+  if (message.includes("REVIEW_ALREADY_PENDING")) {
+    return new AppError(
+      "Ya tienes una captura de esa red en revisión.",
+      "REVIEW_ALREADY_PENDING",
+      409
+    );
+  }
+  if (message.includes("REVIEW_NOT_FOUND")) {
+    return new AppError("No encontramos esa evidencia.", "REVIEW_NOT_FOUND", 404);
+  }
+  if (message.includes("REVIEW_NOT_PENDING")) {
+    return new AppError("Esa evidencia ya fue revisada.", "REVIEW_NOT_PENDING", 409);
+  }
+  if (message.includes("INVALID_PLATFORM")) {
+    return new AppError("Esa red social no es válida.", "INVALID_PLATFORM", 400);
+  }
+  if (message.includes("INVALID_STATUS")) {
+    return new AppError("Ese estado no es válido.", "INVALID_STATUS", 400);
+  }
+  if (
+    message.includes("fetch failed") ||
+    message.includes("Failed to fetch") ||
+    message.includes("Load failed")
+  ) {
+    return new AppError("No se pudo conectar. Intenta de nuevo.", "NETWORK", 503);
+  }
   if (message.includes("duplicate key") || message.includes("violates")) {
     return new AppError("No se pudo guardar la información.", "CONFLICT", 409);
   }

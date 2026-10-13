@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { ReviewButton } from "@/components/reviews/ReviewButton";
 import { HERO_IMAGES } from "@/lib/gallery-images";
 
 export function HeroCarousel() {
@@ -60,12 +61,7 @@ export function HeroCarousel() {
           >
             Genera tu tarjeta VIP
           </Link>
-          <a
-            href="#galeria"
-            className="rounded-2xl border border-white/30 bg-white/10 px-8 py-3.5 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/20"
-          >
-            Ver platillos
-          </a>
+          <ReviewButton />
         </div>
 
         <div className="mt-8 flex gap-2">

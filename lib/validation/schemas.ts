@@ -114,3 +114,11 @@ export const markBirthdaySentSchema = z.object({
   memberId: z.string().uuid(),
   year: z.coerce.number().int().min(2000).max(2100),
 });
+
+export const reviewPlatformSchema = z.enum(["google", "facebook", "instagram"]);
+
+export const reviewStatusSchema = z.enum(["pending", "approved", "rejected"]);
+
+export const resolveReviewSchema = z.object({
+  status: z.enum(["approved", "rejected"]),
+});

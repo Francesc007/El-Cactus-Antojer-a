@@ -32,3 +32,9 @@ where email = 'correo@negocio.com';
 
 - HTTPS obligatorio.
 - `NEXT_PUBLIC_APP_URL` debe ser la URL canónica de producción.
+
+## Reseñas (capturas)
+
+Antes de publicar el código de reseñas, aplica en Supabase la migración `supabase/migrations/20261013000000_review_submissions.sql`. Crea la tabla, las funciones, la bandera de Google y el bucket privado `review-evidence`.
+
+El dueño revisa las capturas en Panel > Clientes > Reseñas. Aprobar no otorga sellos todavía. Si se rechaza una de Google Maps, el cliente puede volver a enviarla.

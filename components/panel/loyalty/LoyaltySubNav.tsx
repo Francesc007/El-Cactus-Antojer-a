@@ -7,6 +7,7 @@ const SECTIONS = [
   { href: "/panel/clientes", label: "Clientes", emoji: "👥" },
   { href: "/panel/clientes/escanear", label: "Escanear", emoji: "📷" },
   { href: "/panel/clientes/cumpleanos", label: "Cumpleaños", emoji: "🎂" },
+  { href: "/panel/clientes/resenas", label: "Reseñas", emoji: "⭐" },
   { href: "/panel/clientes/configuracion", label: "Configuración", emoji: "⚙️" },
 ] as const;
 
@@ -26,7 +27,7 @@ export function LoyaltySubNav() {
 
   return (
     <nav
-      className="grid grid-cols-2 gap-2 sm:grid-cols-4"
+      className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5"
       aria-label="Secciones de tarjeta VIP"
     >
       {SECTIONS.map((section) => {

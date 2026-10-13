@@ -35,4 +35,10 @@ export const BUSINESS_INFO = {
     instagram: "https://www.instagram.com/el_cactus_antojeria/",
     tiktok: "https://www.tiktok.com/@elcactusantojeria",
   },
+  reviews: {
+    google:
+      "https://www.google.com.mx/maps/place/El+cactus+antojeria/@19.8971693,-99.3489132,17z/data=!3m1!4b1!4m6!3m5!1s0x85d22fb80fe79425:0x1aac8cabef808e67!8m2!3d19.8971693!4d-99.3463383!16s%2Fg%2F11ty6yr9mc?entry=ttu",
+    facebook: "https://www.facebook.com/profile.php?id=100091252825387",
+    instagram: "https://www.instagram.com/el_cactus_antojeria/",
+  },
 } as const;
