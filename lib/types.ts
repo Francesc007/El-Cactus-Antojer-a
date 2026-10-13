@@ -255,6 +255,8 @@ export type ReviewPublicStatus = {
   googleSubmitted: boolean;
 };
 
+export type ReviewPeriod = "week" | "month" | "all";
+
 export type ReviewListItem = {
   id: string;
   memberId: string;
@@ -263,8 +265,16 @@ export type ReviewListItem = {
   phone: string;
   platform: ReviewPlatform;
   imageUrl: string | null;
+  archived: boolean;
   status: ReviewStatus;
   createdAt: string;
   createdAtLabel: string;
   validatedAtLabel: string | null;
+};
+
+export type ReviewListPage = {
+  reviews: ReviewListItem[];
+  page: number;
+  pageSize: number;
+  total: number;
 };

@@ -38,3 +38,5 @@ where email = 'correo@negocio.com';
 Antes de publicar el código de reseñas, aplica en Supabase la migración `supabase/migrations/20261013000000_review_submissions.sql`. Crea la tabla, las funciones, la bandera de Google y el bucket privado `review-evidence`.
 
 El dueño revisa las capturas en Panel > Clientes > Reseñas. Aprobar no otorga sellos todavía. Si se rechaza una de Google Maps, el cliente puede volver a enviarla.
+
+Aplica también `supabase/migrations/20261013000001_review_evidence_archive.sql`. A los 30 días de aprobada se borra solo la foto; el nombre, la fecha, la red y el estado se quedan para el historial. Pendientes y rechazadas no se archivan. El cron diario de cumpleaños también hace esa limpieza.

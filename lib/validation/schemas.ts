@@ -119,6 +119,12 @@ export const reviewPlatformSchema = z.enum(["google", "facebook", "instagram"]);
 
 export const reviewStatusSchema = z.enum(["pending", "approved", "rejected"]);
 
+export const reviewListQuerySchema = z.object({
+  status: reviewStatusSchema.default("pending"),
+  range: z.enum(["week", "month", "all"]).default("week"),
+  page: z.coerce.number().int().min(1).max(500).default(1),
+});
+
 export const resolveReviewSchema = z.object({
   status: z.enum(["approved", "rejected"]),
 });

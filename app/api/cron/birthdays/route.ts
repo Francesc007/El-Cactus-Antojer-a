@@ -3,6 +3,7 @@ import { getServerEnv } from "@/lib/env";
 import { jsonError, jsonOk } from "@/lib/http";
 import { runBirthdayCron } from "@/lib/loyalty-cron";
 import { logEvent } from "@/lib/observability";
+import { archiveExpiredReviewEvidence } from "@/lib/services/reviews";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +29,13 @@ export async function GET(request: Request) {
       return jsonOk({ error: "No autorizado." }, 401);
     }
     const result = await runBirthdayCron();
-    return jsonOk(result);
+    let archivedReviews = 0;
+    try {
+      archivedReviews = await archiveExpiredReviewEvidence();
+    } catch {
+      logEvent("error", { message: "No se pudieron archivar las capturas", code: "REVIEW_ARCHIVE" });
+    }
+    return jsonOk({ ...result, archivedReviews });
   } catch (error) {
     return jsonError(error);
   }

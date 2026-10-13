@@ -13,6 +13,7 @@ import {
   reviewEvidencePath,
   reviewIdentifierHint,
   reviewInstruction,
+  reviewPeriodStart,
 } from "@/lib/reviews";
 
 describe("identificador de reseña", () => {
@@ -71,6 +72,15 @@ describe("plataformas y textos", () => {
   it("pide teléfono o folio con un texto claro", () => {
     expect(reviewIdentifierHint()).toContain("teléfono");
     expect(reviewIdentifierHint()).toContain("C-0001");
+  });
+});
+
+describe("periodo del historial", () => {
+  it("usa el lunes y el día 1 en hora del centro de México", () => {
+    const tuesday = new Date("2026-10-13T18:00:00.000Z");
+    expect(reviewPeriodStart("week", tuesday, "America/Mexico_City")).toBe("2026-10-12T06:00:00.000Z");
+    expect(reviewPeriodStart("month", tuesday, "America/Mexico_City")).toBe("2026-10-01T06:00:00.000Z");
+    expect(reviewPeriodStart("all", tuesday, "America/Mexico_City")).toBeNull();
   });
 });
 

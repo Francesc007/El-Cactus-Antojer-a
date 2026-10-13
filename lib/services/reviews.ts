@@ -3,19 +3,28 @@ import { getServerEnv } from "@/lib/env";
 import { detectLoyaltyImage, firstName, formatBusinessDateTime } from "@/lib/loyalty";
 import { logEvent } from "@/lib/observability";
 import {
+  REVIEW_ARCHIVE_AFTER_DAYS,
+  REVIEW_ARCHIVE_BATCH,
   REVIEW_EVIDENCE_BUCKET,
   REVIEW_EVIDENCE_SIGNED_SECONDS,
   REVIEW_IMAGE_MAX_BYTES,
-  REVIEW_LIST_LIMIT,
+  REVIEW_PAGE_SIZE,
   isReviewEvidencePath,
   isReviewPlatform,
   isReviewStatus,
   parseReviewIdentifier,
   reviewEvidencePath,
   reviewIdentifierHint,
+  reviewPeriodStart,
 } from "@/lib/reviews";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
-import type { ReviewListItem, ReviewPlatform, ReviewPublicStatus, ReviewStatus } from "@/lib/types";
+import type {
+  ReviewListPage,
+  ReviewPeriod,
+  ReviewPlatform,
+  ReviewPublicStatus,
+  ReviewStatus,
+} from "@/lib/types";
 
 type DbError = {
   code?: string;
@@ -39,6 +48,7 @@ type ReviewRow = {
   status: ReviewStatus;
   created_at: string;
   validated_at: string | null;
+  image_archived_at: string | null;
   loyalty_members:
     | {
         full_name: string;
@@ -127,12 +137,14 @@ async function loadMemberByIdentifier(raw: string): Promise<MemberLookupRow> {
   return data as MemberLookupRow;
 }
 
-async function removeEvidence(path: string): Promise<void> {
+async function removeEvidence(path: string): Promise<boolean> {
   const admin = createAdminSupabaseClient();
   const { error } = await admin.storage.from(REVIEW_EVIDENCE_BUCKET).remove([path]);
   if (error) {
     logEvent("error", { message: "No se pudo borrar la captura de reseña", code: "REVIEW_PHOTO_DELETE" });
+    return false;
   }
+  return true;
 }
 
 async function signEvidence(paths: string[]): Promise<Map<string, string>> {
@@ -250,49 +262,119 @@ export async function submitReview(input: {
   return { reviewId };
 }
 
-export async function listReviews(status: ReviewStatus): Promise<ReviewListItem[]> {
-  if (!isReviewStatus(status)) {
-    throw new AppError("Ese estado no es válido.", "INVALID_STATUS", 400);
-  }
-
+export async function archiveExpiredReviewEvidence(now = new Date()): Promise<number> {
+  const cutoff = new Date(now.getTime() - REVIEW_ARCHIVE_AFTER_DAYS * 86_400_000).toISOString();
   const admin = createAdminSupabaseClient();
   const { data, error } = await admin
     .from("review_submissions")
-    .select("id, member_id, platform, image_path, status, created_at, validated_at, loyalty_members!inner(full_name, phone, folio)")
-    .eq("status", status)
-    .order("created_at", { ascending: false })
-    .limit(REVIEW_LIST_LIMIT);
+    .select("id, image_path")
+    .eq("status", "approved")
+    .is("image_archived_at", null)
+    .lt("validated_at", cutoff)
+    .limit(REVIEW_ARCHIVE_BATCH);
 
+  if (error || !data) {
+    logEvent("error", { message: "No se pudieron archivar las capturas", code: "REVIEW_ARCHIVE" });
+    return 0;
+  }
+
+  let archived = 0;
+  for (const row of data as { id: string; image_path: string }[]) {
+    if (!isReviewEvidencePath(row.image_path)) {
+      continue;
+    }
+    const removed = await removeEvidence(row.image_path);
+    if (!removed) {
+      continue;
+    }
+    const { error: updateError } = await admin
+      .from("review_submissions")
+      .update({ image_archived_at: now.toISOString() })
+      .eq("id", row.id)
+      .is("image_archived_at", null);
+    if (!updateError) {
+      archived += 1;
+    }
+  }
+  return archived;
+}
+
+export async function listReviews(input: {
+  status: ReviewStatus;
+  period: ReviewPeriod;
+  page: number;
+}): Promise<ReviewListPage> {
+  if (!isReviewStatus(input.status)) {
+    throw new AppError("Ese estado no es válido.", "INVALID_STATUS", 400);
+  }
+
+  try {
+    await archiveExpiredReviewEvidence();
+  } catch {
+    logEvent("error", { message: "No se pudieron archivar las capturas", code: "REVIEW_ARCHIVE" });
+  }
+
+  const zone = getServerEnv().businessTimezone;
+  const admin = createAdminSupabaseClient();
+  const from = (input.page - 1) * REVIEW_PAGE_SIZE;
+  const to = from + REVIEW_PAGE_SIZE - 1;
+  let request = admin
+    .from("review_submissions")
+    .select(
+      "id, member_id, platform, image_path, status, created_at, validated_at, image_archived_at, loyalty_members!inner(full_name, phone, folio)",
+      { count: "exact" }
+    )
+    .eq("status", input.status);
+
+  if (input.status === "pending") {
+    request = request.order("created_at", { ascending: false });
+  } else {
+    const start = reviewPeriodStart(input.period, new Date(), zone);
+    if (start) {
+      request = request.gte("validated_at", start);
+    }
+    request = request.order("validated_at", { ascending: false });
+  }
+
+  const { data, error, count } = await request.range(from, to);
   if (error) {
     logEvent("error", { message: "No se pudieron leer las reseñas", code: "REVIEW_LIST" });
     throw new AppError("No se pudieron leer las reseñas.", "REVIEW_LIST", 500);
   }
 
   const rows = (data ?? []) as ReviewRow[];
-  const photos = await signEvidence(rows.map((row) => row.image_path));
-  const zone = getServerEnv().businessTimezone;
+  const photos = await signEvidence(
+    rows.filter((row) => !row.image_archived_at).map((row) => row.image_path)
+  );
 
-  return rows.flatMap((row) => {
-    const member = memberFromJoin(row.loyalty_members);
-    if (!member) {
-      return [];
-    }
-    return [
-      {
-        id: row.id,
-        memberId: row.member_id,
-        fullName: member.full_name,
-        folio: member.folio,
-        phone: member.phone,
-        platform: row.platform,
-        imageUrl: photos.get(row.image_path) ?? null,
-        status: row.status,
-        createdAt: row.created_at,
-        createdAtLabel: formatBusinessDateTime(row.created_at, zone),
-        validatedAtLabel: row.validated_at ? formatBusinessDateTime(row.validated_at, zone) : null,
-      },
-    ];
-  });
+  return {
+    page: input.page,
+    pageSize: REVIEW_PAGE_SIZE,
+    total: count ?? rows.length,
+    reviews: rows.flatMap((row) => {
+      const member = memberFromJoin(row.loyalty_members);
+      if (!member) {
+        return [];
+      }
+      const archived = row.image_archived_at !== null;
+      return [
+        {
+          id: row.id,
+          memberId: row.member_id,
+          fullName: member.full_name,
+          folio: member.folio,
+          phone: member.phone,
+          platform: row.platform,
+          imageUrl: archived ? null : (photos.get(row.image_path) ?? null),
+          archived,
+          status: row.status,
+          createdAt: row.created_at,
+          createdAtLabel: formatBusinessDateTime(row.created_at, zone),
+          validatedAtLabel: row.validated_at ? formatBusinessDateTime(row.validated_at, zone) : null,
+        },
+      ];
+    }),
+  };
 }
 
 export async function resolveReview(
