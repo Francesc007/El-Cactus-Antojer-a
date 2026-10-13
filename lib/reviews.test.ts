@@ -65,7 +65,7 @@ describe("plataformas y textos", () => {
   it("incluye un agradecimiento cálido", () => {
     expect(REVIEW_THANKS_TITLE).toContain("Gracias");
     expect(REVIEW_THANKS_BODY).toContain("El Cactus");
-    expect(REVIEW_THANKS_BODY).toContain("captura");
+    expect(REVIEW_THANKS_BODY).toContain("imagen");
   });
 
   it("pide teléfono o folio con un texto claro", () => {

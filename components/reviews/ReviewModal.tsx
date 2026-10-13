@@ -309,7 +309,7 @@ export function ReviewModal({ initialIdentifier, onClose }: ReviewModalProps) {
             </div>
 
             <button type="submit" className="btn-primary mt-4 w-full py-3 text-base" disabled={!photo || submitting}>
-              {submitting ? "Enviando…" : "Enviar evidencia"}
+              {submitting ? "Enviando…" : "Enviar imagen"}
             </button>
             <button
               type="button"

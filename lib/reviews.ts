@@ -43,9 +43,9 @@ export const REVIEW_STATUS_LABEL: Record<ReviewStatus, string> = {
 
 const GREEN_HEART = String.fromCodePoint(0x1f49a);
 
-export const REVIEW_THANKS_TITLE = `¡Gracias por tu apoyo! ${GREEN_HEART}`;
+export const REVIEW_THANKS_TITLE = `¡Gracias! ${GREEN_HEART}`;
 export const REVIEW_THANKS_BODY =
-  "Recibimos tu captura y la revisaremos muy pronto. Gente como tú hace crecer a El Cactus.";
+  "Recibimos tu imagen, personas como tú hacen crecer a El Cactus.";
 
 export type ReviewIdentifier = {
   kind: "phone" | "folio";
