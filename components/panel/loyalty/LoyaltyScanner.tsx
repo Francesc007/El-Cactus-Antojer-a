@@ -174,7 +174,7 @@ export function LoyaltyScanner() {
     try {
       await apiRequest(`/api/loyalty/members/${preview.id}/visits`, {
         method: "POST",
-        body: JSON.stringify({ source, force }),
+        body: JSON.stringify({ source, force: source === "scan" && force }),
       });
       setNotice(force ? "Visita registrada de todos modos." : "Visita registrada.");
       setPreview(await refresh(preview.id));
@@ -287,18 +287,21 @@ export function LoyaltyScanner() {
           )}
           {preview.tooSoon && preview.status === "active" && (
             <p className="mt-3 text-sm text-amber-900">
-              La última visita fue hace menos de {preview.minHours} horas.
+              La última visita fue hace menos de {preview.minHours} horas.{" "}
+              {source === "manual"
+                ? "Vuelve a escanear el QR del cliente si necesitas revisar la tarjeta; no se puede registrar otra visita por búsqueda manual."
+                : "No se puede registrar otra visita todavía."}
             </p>
           )}
           <div className="mt-4 flex flex-col gap-2">
-            {preview.status === "active" && (
+            {preview.status === "active" && !preview.tooSoon && (
               <button
                 type="button"
                 disabled={loading}
-                onClick={() => void registerVisit(preview.tooSoon)}
+                onClick={() => void registerVisit(false)}
                 className="btn-primary w-full py-3 text-base"
               >
-                {preview.tooSoon ? "Registrar de todos modos" : "Registrar visita"}
+                Registrar visita
               </button>
             )}
             {preview.status === "active" && preview.rewardAvailable && (

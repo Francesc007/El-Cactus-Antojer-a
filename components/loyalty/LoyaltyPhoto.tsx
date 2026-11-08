@@ -26,13 +26,13 @@ export function LoyaltyPhoto({
   initialOnly = false,
 }: LoyaltyPhotoProps) {
   const [shownSrc, setShownSrc] = useState<string | null>(null);
-  const boxSize = size === "lg" ? "h-28 w-28" : size === "xs" ? "h-12 w-12" : "h-16 w-16";
-  const initialText = size === "lg" ? "text-2xl" : size === "xs" ? "text-sm" : "text-lg";
+  const boxSize = size === "lg" ? "h-40 w-40" : size === "xs" ? "h-12 w-12" : "h-16 w-16";
+  const initialText = size === "lg" ? "text-3xl" : size === "xs" ? "text-sm" : "text-lg";
   const showPhoto = !initialOnly && Boolean(src);
   const ready = showPhoto && shownSrc === src;
 
   const badgeSize =
-    size === "xs" ? "h-5 w-5 text-[10px]" : size === "lg" ? "h-7 w-7 text-sm" : "h-6 w-6 text-xs";
+    size === "xs" ? "h-5 w-5 text-[10px]" : size === "lg" ? "h-8 w-8 text-sm" : "h-6 w-6 text-xs";
 
   return (
     <div className={`relative shrink-0 ${boxSize}`}>

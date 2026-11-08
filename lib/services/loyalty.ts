@@ -809,7 +809,7 @@ export async function registerLoyaltyVisit(
     p_member_id: memberId,
     p_registered_by: staffId,
     p_source: source,
-    p_force: force,
+    p_force: source === "manual" ? false : force,
   });
   if (error) {
     throwRpc(error);
