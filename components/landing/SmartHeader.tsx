@@ -8,7 +8,7 @@ export function SmartHeader() {
 
   useEffect(() => {
     function onScroll() {
-      setOverHero(window.scrollY < window.innerHeight * 0.65);
+      setOverHero(window.scrollY < window.innerHeight - 80);
     }
 
     onScroll();
@@ -16,5 +16,5 @@ export function SmartHeader() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  return <Header variant={overHero ? "hero" : "light"} />;
+  return <Header variant={overHero ? "hero" : "light"} floating />;
 }

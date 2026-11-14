@@ -54,10 +54,29 @@
   .gradient-hero-overlay {
     background: linear-gradient(
       180deg,
-      rgba(26, 35, 24, 0.35) 0%,
-      rgba(26, 35, 24, 0.55) 45%,
-      rgba(26, 35, 24, 0.92) 100%
+      rgba(26, 35, 24, 0.5) 0%,
+      rgba(26, 35, 24, 0.08) 34%,
+      rgba(26, 35, 24, 0.22) 58%,
+      rgba(26, 35, 24, 0.9) 100%
     );
+  }
+
+  @media (min-width: 768px) {
+    .gradient-hero-overlay {
+      background:
+        linear-gradient(
+          90deg,
+          rgba(26, 35, 24, 0.78) 0%,
+          rgba(26, 35, 24, 0.34) 42%,
+          rgba(26, 35, 24, 0.08) 100%
+        ),
+        linear-gradient(
+          180deg,
+          rgba(26, 35, 24, 0.38) 0%,
+          rgba(26, 35, 24, 0.04) 42%,
+          rgba(26, 35, 24, 0.5) 100%
+        );
+    }
   }
 
   .gradient-cactus-text {

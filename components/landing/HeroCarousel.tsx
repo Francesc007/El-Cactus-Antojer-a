@@ -17,11 +17,11 @@ export function HeroCarousel() {
   }, []);
 
   return (
-    <section className="relative min-h-[88vh] overflow-hidden">
+    <section className="relative min-h-[100svh] overflow-hidden">
       {HERO_IMAGES.map((image, index) => (
         <div
           key={image.src}
-          className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+          className={`absolute inset-0 transition-opacity duration-1000 ease-in-out motion-reduce:transition-none ${
             index === activeIndex ? "opacity-100" : "opacity-0"
           }`}
         >
@@ -38,33 +38,33 @@ export function HeroCarousel() {
 
       <div className="gradient-hero-overlay absolute inset-0" />
 
-      <div className="relative z-10 flex min-h-[88vh] flex-col items-center justify-end px-4 pb-12 pt-28 text-center">
+      <div className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-6xl flex-col items-center justify-end px-5 pb-8 pt-24 text-center md:items-start md:px-8 md:pb-14 md:pt-28 md:text-left">
         <p className="section-eyebrow text-cactus-lime">Antojería mexicana</p>
-        <h1 className="mt-2 font-display text-4xl font-extrabold leading-tight text-white text-shadow-hero sm:text-5xl">
+        <h1 className="mt-3 max-w-full font-display text-5xl font-extrabold leading-[0.95] text-white text-shadow-hero sm:text-6xl lg:text-7xl">
           El Cactus
         </h1>
-        <p className="mt-1 text-lg font-semibold uppercase tracking-[0.35em] text-cactus-lime/90">
+        <p className="mt-3 text-sm font-semibold uppercase tracking-[0.28em] text-cactus-lime/90 sm:text-base sm:tracking-[0.38em]">
           Antojería
         </p>
-        <p className="mt-5 max-w-sm text-base leading-relaxed text-stone-200">
+        <p className="mt-5 max-w-md text-base leading-relaxed text-stone-100 md:max-w-lg md:text-lg">
           Sabores auténticos, ambiente cálido y platillos que celebran lo mejor
           de la cocina mexicana.
         </p>
 
-        <div className="mt-8 flex w-full max-w-xs flex-col gap-3">
-          <Link href="/reservar" className="btn-primary w-full">
+        <div className="mt-8 flex w-full max-w-sm flex-col gap-3 md:max-w-none md:flex-row md:flex-wrap md:items-center">
+          <Link href="/reservar" className="btn-primary w-full md:w-auto">
             Reservar mesa
           </Link>
           <Link
             href="/tarjeta"
-            className="rounded-2xl border border-cactus-sun/80 bg-cactus-sun/20 px-8 py-3.5 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-cactus-sun/30"
+            className="rounded-2xl border border-cactus-sun/80 bg-cactus-sun/20 px-8 py-3.5 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-cactus-sun/30 md:py-4"
           >
             Genera tu tarjeta VIP
           </Link>
           <ReviewButton />
         </div>
 
-        <div className="mt-8 flex gap-2">
+        <div className="mt-8 flex gap-2 md:mt-10">
           {HERO_IMAGES.map((_, index) => (
             <button
               key={index}

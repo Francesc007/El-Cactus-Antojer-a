@@ -1,0 +1,1 @@
+Este es un proyecto de prueba. Aplica el archivo de rules de la raíz y el skill de diseño. Haz los cambios que te pida, pero nunca hagas push: todo va a una rama local. Si no me gusta un resultado, lo descartamos y volvemos al commit actual sin perder nada.
