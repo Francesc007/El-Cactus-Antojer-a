@@ -4,7 +4,13 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { PrivacyLink } from "@/components/ui/PrivacyLink";
 import { ApiRequestError, apiFormRequest } from "@/lib/api-client";
+import { compressLoyaltyPhoto } from "@/lib/image-compress";
 import { LOYALTY_HONEYPOT_FIELD, LOYALTY_PHOTO_MAX_BYTES } from "@/lib/loyalty";
+
+const PHOTO_TOO_HEAVY =
+  "Esa foto no se pudo usar. Prueba con otra y tu tarjeta VIP de El Cactus queda lista en un momento.";
+const PHOTO_UNREADABLE =
+  "No pudimos abrir esa foto. Elige otra de tu galería o tómate una selfie con la cámara, y seguimos con tu tarjeta VIP.";
 
 const MONTHS = [
   "Enero",
@@ -28,8 +34,9 @@ export function LoyaltySignupForm() {
   const [consent, setConsent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [preparingPhoto, setPreparingPhoto] = useState(false);
 
-  function choosePhoto(file: File | null) {
+  async function choosePhoto(file: File | null) {
     if (preview) {
       URL.revokeObjectURL(preview);
     }
@@ -38,15 +45,25 @@ export function LoyaltySignupForm() {
       setPreview(null);
       return;
     }
-    if (file.size > LOYALTY_PHOTO_MAX_BYTES) {
-      setError("La foto debe pesar menos de 2 MB.");
-      setPhoto(null);
-      setPreview(null);
+    setError(null);
+    setPhoto(null);
+    setPreview(null);
+    setPreparingPhoto(true);
+    let ready: File;
+    try {
+      ready = await compressLoyaltyPhoto(file);
+    } catch {
+      setPreparingPhoto(false);
+      setError(PHOTO_UNREADABLE);
       return;
     }
-    setError(null);
-    setPhoto(file);
-    setPreview(URL.createObjectURL(file));
+    setPreparingPhoto(false);
+    if (ready.size > LOYALTY_PHOTO_MAX_BYTES) {
+      setError(PHOTO_TOO_HEAVY);
+      return;
+    }
+    setPhoto(ready);
+    setPreview(URL.createObjectURL(ready));
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -164,7 +181,7 @@ export function LoyaltySignupForm() {
                 accept="image/jpeg,image/png,image/webp"
                 capture="user"
                 className="sr-only"
-                onChange={(event) => choosePhoto(event.target.files?.[0] ?? null)}
+                onChange={(event) => void choosePhoto(event.target.files?.[0] ?? null)}
               />
             </label>
             <label className="flex flex-1 cursor-pointer flex-col items-center rounded-xl border border-cactus-sand bg-white px-3 py-3 text-xs font-bold text-cactus-forest">
@@ -174,11 +191,16 @@ export function LoyaltySignupForm() {
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
                 className="sr-only"
-                onChange={(event) => choosePhoto(event.target.files?.[0] ?? null)}
+                onChange={(event) => void choosePhoto(event.target.files?.[0] ?? null)}
               />
             </label>
           </div>
         </div>
+        {preparingPhoto ? (
+          <p className="mt-2 text-xs text-stone-500" aria-live="polite">
+            Preparando tu foto…
+          </p>
+        ) : null}
       </div>
 
       <label className="flex items-start gap-3 text-sm leading-relaxed text-stone-700">

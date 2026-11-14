@@ -1,3 +1,4 @@
+import { LOYALTY_PHOTO_MAX_BYTES } from "@/lib/loyalty";
 import { REVIEW_IMAGE_MAX_EDGE, REVIEW_IMAGE_TARGET_BYTES } from "@/lib/reviews";
 
 type BitmapHandle = {
@@ -222,7 +223,11 @@ function scaleCanvas(source: HTMLCanvasElement, factor: number): HTMLCanvasEleme
   return canvas;
 }
 
-async function encodeCanvas(canvas: HTMLCanvasElement): Promise<{ blob: Blob; name: string }> {
+async function encodeCanvas(
+  canvas: HTMLCanvasElement,
+  targetBytes: number = REVIEW_IMAGE_TARGET_BYTES,
+  baseName: string = "evidencia"
+): Promise<{ blob: Blob; name: string }> {
   let type: "image/webp" | "image/jpeg" = "image/webp";
   let quality = 0.82;
   let blob = await canvasToBlob(canvas, type, quality);
@@ -235,7 +240,7 @@ async function encodeCanvas(canvas: HTMLCanvasElement): Promise<{ blob: Blob; na
   }
 
   let current = canvas;
-  for (let step = 0; step < 8 && blob.size > REVIEW_IMAGE_TARGET_BYTES; step += 1) {
+  for (let step = 0; step < 8 && blob.size > targetBytes; step += 1) {
     if (quality > 0.5) {
       quality = Math.max(0.5, quality - 0.08);
     } else if (Math.min(current.width, current.height) > 640) {
@@ -250,7 +255,7 @@ async function encodeCanvas(canvas: HTMLCanvasElement): Promise<{ blob: Blob; na
     }
   }
 
-  const name = type === "image/webp" ? "evidencia.webp" : "evidencia.jpg";
+  const name = type === "image/webp" ? `${baseName}.webp` : `${baseName}.jpg`;
   return { blob, name };
 }
 
@@ -277,6 +282,40 @@ export async function compressReviewImage(file: File): Promise<File> {
     if (allowed && encoded.blob.size >= file.size && file.size <= REVIEW_IMAGE_TARGET_BYTES) {
       return file;
     }
+    return new File([encoded.blob], encoded.name, {
+      type: encoded.blob.type,
+      lastModified: Date.now(),
+    });
+  } finally {
+    decoded.close();
+  }
+}
+
+// Fotos de la tarjeta VIP: se reducen en el celular antes de subirlas
+// para que queden debajo del límite de 2 MB sin que el cliente lo note.
+const LOYALTY_PHOTO_TARGET_BYTES = Math.floor(LOYALTY_PHOTO_MAX_BYTES * 0.9);
+const LOYALTY_PHOTO_MAX_EDGE = 1600;
+
+export async function compressLoyaltyPhoto(file: File): Promise<File> {
+  const allowed =
+    file.type === "image/jpeg" || file.type === "image/png" || file.type === "image/webp";
+  if (allowed && file.size <= LOYALTY_PHOTO_TARGET_BYTES) {
+    return file;
+  }
+
+  const decoded = await decodeImage(file);
+  try {
+    if (decoded.width < 8 || decoded.height < 8) {
+      throw new Error("La foto es demasiado pequeña.");
+    }
+    const canvas = drawToCanvas(
+      decoded.source,
+      decoded.width,
+      decoded.height,
+      decoded.orientation,
+      LOYALTY_PHOTO_MAX_EDGE
+    );
+    const encoded = await encodeCanvas(canvas, LOYALTY_PHOTO_TARGET_BYTES, "foto");
     return new File([encoded.blob], encoded.name, {
       type: encoded.blob.type,
       lastModified: Date.now(),

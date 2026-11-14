@@ -7,6 +7,7 @@ import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { StampRow } from "@/components/loyalty/StampRow";
 import { ConfirmDialog } from "@/components/panel/ConfirmDialog";
 import { ApiRequestError, apiFormRequest, apiRequest } from "@/lib/api-client";
+import { compressLoyaltyPhoto } from "@/lib/image-compress";
 import { firstName, LOYALTY_PHOTO_MAX_BYTES } from "@/lib/loyalty";
 import { formatLoyaltyCardWhatsAppMessage } from "@/lib/loyalty-card-share";
 import { buildWhatsAppSendUrl } from "@/lib/reservation-whatsapp-message";
@@ -112,14 +113,23 @@ export default function ClienteDetailPage() {
     if (!file || !member) {
       return;
     }
-    if (file.size > LOYALTY_PHOTO_MAX_BYTES) {
-      setError("La foto debe pesar menos de 2 MB.");
+    setBusy(true);
+    setError(null);
+    let ready: File;
+    try {
+      ready = await compressLoyaltyPhoto(file);
+    } catch {
+      setError("No se pudo abrir esa foto. Prueba con otra.");
+      setBusy(false);
+      return;
+    }
+    if (ready.size > LOYALTY_PHOTO_MAX_BYTES) {
+      setError("La foto sigue pesando más de 2 MB aun comprimida. Prueba con otra.");
+      setBusy(false);
       return;
     }
     const form = new FormData();
-    form.set("photo", file);
-    setBusy(true);
-    setError(null);
+    form.set("photo", ready);
     try {
       await apiFormRequest(`/api/loyalty/members/${member.id}/photo`, form);
       setNotice("Foto actualizada.");
