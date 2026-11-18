@@ -17,7 +17,7 @@ export function ReviewButton() {
       <button
         type="button"
         onClick={handleOpen}
-        className="w-full rounded-2xl border border-white/30 bg-white/10 px-8 py-3.5 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/20 md:w-auto md:py-4"
+        className="w-full rounded-2xl border border-cactus-sun/80 bg-cactus-sun/20 px-8 py-3.5 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-cactus-sun/30 md:w-auto md:py-4"
       >
         Deja tu reseña
       </button>

@@ -134,7 +134,7 @@ export function ReservationForm() {
   if (submitted && confirmationDetails) {
     return (
       <div className="mx-auto max-w-lg text-center">
-        <div className="premium-card border-2 border-cactus-forest/40 ring-1 ring-cactus-lime/30 p-8">
+        <div className="premium-card border-2 border-cactus-forest/40 p-8 ring-1 ring-cactus-lime/30 drop-shadow-[0_0_14px_rgba(75,167,71,0.4)]">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-cactus-lime/30 to-cactus-forest/20 ring-2 ring-cactus-lime/40">
             <span className="text-3xl text-cactus-forest">✓</span>
           </div>
@@ -164,7 +164,7 @@ export function ReservationForm() {
     <div className="mx-auto max-w-lg">
       <form
         onSubmit={handleSubmit}
-        className="premium-card space-y-6 border-2 border-cactus-forest/40 p-6 ring-1 ring-cactus-lime/30 sm:p-8"
+        className="premium-card space-y-6 border-2 border-cactus-forest/40 p-6 ring-1 ring-cactus-lime/30 drop-shadow-[0_0_14px_rgba(75,167,71,0.4)] sm:p-8"
       >
         <div className="border-b border-cactus-sand/60 pb-5">
           <p className="section-eyebrow">Tu experiencia</p>

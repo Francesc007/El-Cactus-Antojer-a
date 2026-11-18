@@ -39,7 +39,7 @@ export function HeroCarousel() {
       <div className="gradient-hero-overlay absolute inset-0" />
 
       <div className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-6xl flex-col items-center justify-end px-5 pb-8 pt-24 text-center md:items-start md:px-8 md:pb-14 md:pt-28 md:text-left">
-        <p className="section-eyebrow text-cactus-lime">Antojería mexicana</p>
+        <p className="section-eyebrow text-cactus-lime">Comida mexicana</p>
         <h1 className="mt-3 max-w-full font-display text-5xl font-extrabold leading-[0.95] text-white text-shadow-hero sm:text-6xl lg:text-7xl">
           El Cactus
         </h1>
@@ -52,12 +52,12 @@ export function HeroCarousel() {
         </p>
 
         <div className="mt-8 flex w-full max-w-sm flex-col gap-3 md:max-w-none md:flex-row md:flex-wrap md:items-center">
-          <Link href="/reservar" className="btn-primary w-full md:w-auto">
-            Reservar mesa
+          <Link href="/reservar" className="btn-primary btn-shine w-full md:w-auto">
+            <span className="relative z-10">Reservar mesa</span>
           </Link>
           <Link
             href="/tarjeta"
-            className="rounded-2xl border border-cactus-sun/80 bg-cactus-sun/20 px-8 py-3.5 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-cactus-sun/30 md:py-4"
+            className="rounded-2xl border border-cactus-lime/80 bg-cactus-lime/20 px-8 py-3.5 text-sm font-bold text-cactus-lime backdrop-blur-sm transition hover:bg-cactus-lime/30 md:py-4"
           >
             Genera tu tarjeta VIP
           </Link>

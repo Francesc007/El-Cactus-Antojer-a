@@ -103,4 +103,102 @@
       radial-gradient(at 80% 0%, rgba(75, 167, 71, 0.08) 0, transparent 45%),
       radial-gradient(at 50% 100%, rgba(247, 148, 29, 0.1) 0, transparent 50%);
   }
+
+  .logo-shine {
+    position: relative;
+  }
+
+  .logo-shine::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: linear-gradient(
+      105deg,
+      transparent 32%,
+      rgba(255, 255, 255, 0.15) 42%,
+      rgba(255, 255, 255, 0.85) 50%,
+      rgba(255, 255, 255, 0.15) 58%,
+      transparent 68%
+    );
+    transform: translateX(-130%);
+    animation: logo-shine 3.2s ease-in-out infinite;
+  }
+
+  .btn-shine {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-shine::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: linear-gradient(
+      105deg,
+      transparent 32%,
+      rgba(255, 255, 255, 0.12) 42%,
+      rgba(255, 255, 255, 0.55) 50%,
+      rgba(255, 255, 255, 0.12) 58%,
+      transparent 68%
+    );
+    transform: translateX(-130%);
+    animation: logo-shine 3.2s ease-in-out infinite;
+  }
+
+  .shine-text-glint {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: linear-gradient(
+      105deg,
+      transparent 34%,
+      rgba(255, 255, 255, 0.2) 46%,
+      rgba(255, 255, 255, 0.95) 50%,
+      rgba(255, 255, 255, 0.2) 54%,
+      transparent 66%
+    );
+    background-repeat: no-repeat;
+    background-size: 240% 100%;
+    background-position: 130% 0;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    animation: shine-text-glint 3.2s ease-in-out infinite;
+  }
+
+  @keyframes logo-shine {
+    0%,
+    48% {
+      transform: translateX(-130%);
+    }
+    76%,
+    100% {
+      transform: translateX(130%);
+    }
+  }
+
+  @keyframes shine-text-glint {
+    0%,
+    48% {
+      background-position: 130% 0;
+    }
+    76%,
+    100% {
+      background-position: -30% 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .logo-shine::after,
+    .btn-shine::after,
+    .shine-text-glint {
+      animation: none;
+      opacity: 0;
+    }
+  }
 }

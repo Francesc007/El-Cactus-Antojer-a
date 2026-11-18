@@ -86,7 +86,7 @@ export function LoyaltySignupForm() {
   }
 
   return (
-    <form onSubmit={(event) => void handleSubmit(event)} className="premium-card relative mx-auto max-w-lg space-y-4 p-5">
+    <form onSubmit={(event) => void handleSubmit(event)} className="premium-card relative mx-auto max-w-lg space-y-4 border-2 border-cactus-forest/40 p-5 ring-1 ring-cactus-lime/30 drop-shadow-[0_0_14px_rgba(75,167,71,0.4)]">
       <div>
         <p className="section-eyebrow">Clientes frecuentes</p>
         <h1 className="section-title mt-2">Genera tu tarjeta VIP</h1>

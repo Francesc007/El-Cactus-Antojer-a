@@ -21,7 +21,7 @@ export function Header({
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 md:px-8 md:py-4">
         <Link href="/" className="flex min-w-0 items-center gap-3">
           <span
-            className={`flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full p-0.5 shadow-sm ring-2 md:h-14 md:w-14 ${
+            className={`logo-shine flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full p-0.5 shadow-sm ring-2 md:h-14 md:w-14 ${
               isHero
                 ? "bg-white/95 ring-cactus-lime/50"
                 : "bg-white ring-cactus-lime/40"

@@ -174,7 +174,7 @@ export function ReviewModal({ initialIdentifier, onClose }: ReviewModalProps) {
       onClick={close}
     >
       <div
-        className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border-2 border-cactus-forest/25 bg-gradient-to-br from-white via-white to-cactus-cream p-5 shadow-premium ring-1 ring-cactus-forest/10"
+        className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border-2 border-cactus-forest/40 bg-gradient-to-br from-white via-white to-cactus-cream p-5 shadow-premium ring-1 ring-cactus-lime/30 drop-shadow-[0_0_14px_rgba(75,167,71,0.4)]"
         onClick={(event) => event.stopPropagation()}
       >
         {view === "pick" && (
@@ -231,7 +231,7 @@ export function ReviewModal({ initialIdentifier, onClose }: ReviewModalProps) {
             <button
               type="button"
               onClick={close}
-              className="mt-4 w-full rounded-xl border-2 border-cactus-forest/35 bg-white px-4 py-3 text-sm font-semibold text-cactus-forest"
+              className="btn-primary mt-4 w-full from-cactus-forest to-cactus-lime shadow-glow-green"
             >
               Cerrar
             </button>

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { BUSINESS_INFO } from "@/lib/business-info";
 import { PrivacyLink } from "@/components/ui/PrivacyLink";
 import { SocialLinks } from "./SocialLinks";
@@ -9,8 +10,11 @@ export function Footer() {
       <div className="relative mx-auto max-w-6xl text-center text-sm md:text-left">
         <div className="flex flex-col items-center gap-6 md:flex-row md:items-start md:justify-between">
           <div>
-            <p className="font-display text-2xl font-bold gradient-cactus-text md:text-3xl">
+            <p className="relative inline-block font-display text-2xl font-bold gradient-cactus-text md:text-3xl">
               {BUSINESS_INFO.name}
+              <span aria-hidden="true" className="shine-text-glint">
+                {BUSINESS_INFO.name}
+              </span>
             </p>
             <a
               href={BUSINESS_INFO.mapsUrl}
@@ -33,20 +37,29 @@ export function Footer() {
           </PrivacyLink>
         </p>
         <div
-          className="mt-4 flex flex-col items-center justify-between gap-2 text-xs text-stone-600 sm:flex-row"
+          className="mt-4 flex flex-col items-center justify-between gap-2 text-xs text-cactus-sand sm:flex-row"
           suppressHydrationWarning
         >
-          <p>
+          <p className="flex max-w-full flex-wrap items-center justify-center gap-x-1.5 gap-y-1 md:justify-start">
             Powered by{" "}
             <a
               href="https://www.sigmaaiagency.com/"
               target="_blank"
               rel="noopener noreferrer"
-              className="transition hover:text-cactus-lime"
+              className="font-bold text-cactus-lime no-underline hover:text-cactus-lime"
             >
               Sigma AI Agency
             </a>
             {" | Automatización Inteligente"}
+            <span className="logo-shine inline-flex h-8 w-8 shrink-0 overflow-hidden rounded-full">
+              <Image
+                src="/logo Sigma.png"
+                alt=""
+                width={32}
+                height={32}
+                className="h-8 w-8 rounded-full"
+              />
+            </span>
           </p>
           <p>
             © {new Date().getFullYear()} {BUSINESS_INFO.name}. Todos los
